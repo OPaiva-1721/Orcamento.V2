@@ -25,7 +25,7 @@ export class OrcamentoCreatedHandler {
       await this.sendEmailUseCase.execute({
         orcamentoId:     event.orcamentoId,
         destinatarioIds: event.destinatarioIds,
-      });
+      }, event.ownerId);
     } catch (err: any) {
       // Falha no email não deve impedir a criação do orçamento (graceful degradation)
       this.logger.error(`Erro ao enviar emails para orçamento #${event.orcamentoId}: ${err.message}`);

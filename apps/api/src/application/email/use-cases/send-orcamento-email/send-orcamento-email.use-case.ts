@@ -28,8 +28,8 @@ export class SendOrcamentoEmailUseCase {
     private readonly pdfService: PdfLibService,
   ) {}
 
-  async execute(cmd: SendOrcamentoEmailCommand): Promise<EmailResult[]> {
-    const orcamento = await this.orcamentoRepo.findById(cmd.orcamentoId);
+  async execute(cmd: SendOrcamentoEmailCommand, ownerId: string): Promise<EmailResult[]> {
+    const orcamento = await this.orcamentoRepo.findById(cmd.orcamentoId, ownerId);
     if (!orcamento) throw new OrcamentoNotFoundException(cmd.orcamentoId);
 
     const destinatarios = (orcamento.destinatarios ?? []).filter((d) =>

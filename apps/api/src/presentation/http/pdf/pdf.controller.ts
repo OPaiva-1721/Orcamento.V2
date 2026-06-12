@@ -5,6 +5,8 @@ import { PdfLibService } from '../../../infrastructure/pdf/pdf-lib/pdf-lib.servi
 import { IOrcamentoRepository, ORCAMENTO_REPOSITORY } from '../../../domain/orcamento/repositories/orcamento.repository.interface';
 import { OrcamentoNotFoundException } from '../../../domain/orcamento/exceptions/orcamento-not-found.exception';
 import { Inject } from '@nestjs/common';
+import { CurrentUser } from '../decorators/current-user.decorator';
+import { DecodedFirebaseToken } from '../../../infrastructure/auth/firebase/firebase-auth.adapter';
 
 class GerarPdfDto {
   @IsNotEmpty() @IsInt() @Min(1)
@@ -20,8 +22,8 @@ export class PdfController {
 
   @Post('gerar-pdf')
   @HttpCode(200)
-  async gerarPDF(@Body() body: GerarPdfDto, @Res() res: Response) {
-    const orcamento = await this.orcamentoRepo.findById(body.orcamentoId);
+  async gerarPDF(@Body() body: GerarPdfDto, @CurrentUser() user: DecodedFirebaseToken, @Res() res: Response) {
+    const orcamento = await this.orcamentoRepo.findById(body.orcamentoId, user.uid);
     if (!orcamento) throw new OrcamentoNotFoundException(body.orcamentoId);
 
     const pdfBuffer = await this.pdfService.gerarPDF({
@@ -39,8 +41,8 @@ export class PdfController {
 
   @Post('gerar-pdf-editavel')
   @HttpCode(200)
-  async gerarPDFEditavel(@Body() body: GerarPdfDto, @Res() res: Response) {
-    const orcamento = await this.orcamentoRepo.findById(body.orcamentoId);
+  async gerarPDFEditavel(@Body() body: GerarPdfDto, @CurrentUser() user: DecodedFirebaseToken, @Res() res: Response) {
+    const orcamento = await this.orcamentoRepo.findById(body.orcamentoId, user.uid);
     if (!orcamento) throw new OrcamentoNotFoundException(body.orcamentoId);
 
     const pdfBuffer = await this.pdfService.gerarPDFEditavel({

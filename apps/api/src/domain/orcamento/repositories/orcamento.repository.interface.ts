@@ -13,13 +13,13 @@ export interface IStatusHistoryRepository {
 }
 
 export interface IOrcamentoRepository {
-  findById(id: number): Promise<Orcamento | null>;
+  findById(id: number, ownerId: string): Promise<Orcamento | null>;
   findAll(filters: OrcamentoFilters): Promise<PaginatedResponse<Orcamento>>;
-  create(data: CreateOrcamentoWithHistory): Promise<Orcamento>;
-  update(id: number, data: UpdateOrcamentoWithHistory): Promise<Orcamento>;
-  delete(id: number): Promise<void>;
-  setDestinatarios(orcamentoId: number, destinatarioIds: number[]): Promise<void>;
-  countByClienteId(clienteId: number): Promise<number>;
+  create(data: CreateOrcamentoWithHistory, ownerId: string): Promise<Orcamento>;
+  update(id: number, ownerId: string, data: UpdateOrcamentoWithHistory): Promise<Orcamento>;
+  delete(id: number, ownerId: string): Promise<void>;
+  setDestinatarios(orcamentoId: number, destinatarioIds: number[], ownerId: string): Promise<void>;
+  countByClienteId(clienteId: number, ownerId: string): Promise<number>;
 }
 
 export const ORCAMENTO_REPOSITORY = 'ORCAMENTO_REPOSITORY';

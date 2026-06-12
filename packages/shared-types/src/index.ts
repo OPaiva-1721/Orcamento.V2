@@ -13,6 +13,7 @@ export type EmailStatus = 'Enviado' | 'Falhou' | 'Pendente';
 
 export interface Cliente {
   id: number;
+  ownerId: string;
   nome: string;
   cnpj: string;
   email: string;
@@ -72,6 +73,7 @@ export interface EmailEnviado {
 // --- DTOs de criação/atualização ---
 
 export interface CreateClienteData {
+  ownerId: string;
   nome: string;
   cnpj: string;
   email: string;
@@ -121,18 +123,21 @@ export interface PaginatedResponse<T> {
 // --- Filtros ---
 
 export interface ClienteFilters {
+  ownerId: string;
   q?: string;
   page?: number;
   limit?: number;
 }
 
 export interface DestinatarioFilters {
+  ownerId: string;
   clienteId?: number;
   page?: number;
   limit?: number;
 }
 
 export interface OrcamentoFilters {
+  ownerId: string;
   clienteId?: number;
   status?: OrcamentoStatus;
   page?: number;

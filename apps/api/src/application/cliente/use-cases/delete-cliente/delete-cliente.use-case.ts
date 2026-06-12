@@ -9,14 +9,13 @@ export class DeleteClienteUseCase {
     @Inject(CLIENTE_REPOSITORY) private readonly clienteRepo: IClienteRepository,
   ) {}
 
-  async execute(id: number): Promise<void> {
-    const existing = await this.clienteRepo.findById(id);
+  async execute(id: number, ownerId: string): Promise<void> {
+    const existing = await this.clienteRepo.findById(id, ownerId);
     if (!existing) throw new ClienteNotFoundException(id);
 
-    // RN-08: não deletar cliente com orçamentos associados
-    const orcamentoCount = await this.clienteRepo.countOrcamentos(id);
+    const orcamentoCount = await this.clienteRepo.countOrcamentos(id, ownerId);
     if (orcamentoCount > 0) throw new ClienteHasOrcamentosException(id);
 
-    await this.clienteRepo.delete(id);
+    await this.clienteRepo.delete(id, ownerId);
   }
 }

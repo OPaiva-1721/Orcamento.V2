@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { eq, ilike, count, sql } from 'drizzle-orm';
-import { clientes } from '@orcamento/db';
+import { and, eq, ilike, count, sql } from 'drizzle-orm';
+import { clientes, orcamentos } from '@orcamento/db';
 import { Cliente, CreateClienteData, UpdateClienteData, ClienteFilters, PaginatedResponse } from '@orcamento/shared-types';
 import { IClienteRepository } from '../../../../domain/cliente/repositories/cliente.repository.interface';
 import { DRIZZLE_CONNECTION } from '../drizzle.constants';
@@ -11,27 +11,29 @@ import { EmailAlreadyExistsException } from '../../../../domain/cliente/exceptio
 export class ClienteDrizzleRepository implements IClienteRepository {
   constructor(@Inject(DRIZZLE_CONNECTION) private readonly db: any) {}
 
-  async findById(id: number): Promise<Cliente | null> {
-    const rows = await this.db.query.clientes.findFirst({
-      where: eq(clientes.id, id),
+  async findById(id: number, ownerId: string): Promise<Cliente | null> {
+    const row = await this.db.query.clientes.findFirst({
+      where: and(eq(clientes.id, id), eq(clientes.ownerId, ownerId)),
       with: { destinatarios: true, orcamentos: true },
     });
-    return rows ?? null;
+    return row ?? null;
   }
 
-  async findByEmail(email: string): Promise<Cliente | null> {
+  async findByEmail(email: string, ownerId: string): Promise<Cliente | null> {
     const row = await this.db.query.clientes.findFirst({
-      where: eq(clientes.email, email),
+      where: and(eq(clientes.email, email), eq(clientes.ownerId, ownerId)),
     });
     return row ?? null;
   }
 
   async findAll(filters: ClienteFilters): Promise<PaginatedResponse<Cliente>> {
     const page  = filters.page  ?? 1;
-    const limit = filters.limit ?? 10;
+    const limit = Math.min(filters.limit ?? 10, 100);
     const offset = (page - 1) * limit;
 
-    const whereClause = filters.q ? ilike(clientes.nome, `%${filters.q}%`) : undefined;
+    const ownerClause  = eq(clientes.ownerId, filters.ownerId);
+    const searchClause = filters.q ? ilike(clientes.nome, `%${filters.q}%`) : undefined;
+    const whereClause  = searchClause ? and(ownerClause, searchClause) : ownerClause;
 
     const [rows, [totalRow]] = await Promise.all([
       this.db.query.clientes.findMany({
@@ -41,7 +43,7 @@ export class ClienteDrizzleRepository implements IClienteRepository {
         offset,
         orderBy: (c: any, { desc }: any) => [desc(c.createdAt)],
       }),
-      this.db.select({ value: count() }).from(clientes).where(whereClause ?? sql`1=1`),
+      this.db.select({ value: count() }).from(clientes).where(whereClause),
     ]);
 
     const total = Number(totalRow?.value ?? 0);
@@ -53,6 +55,7 @@ export class ClienteDrizzleRepository implements IClienteRepository {
       const [row] = await this.db
         .insert(clientes)
         .values({
+          ownerId:  data.ownerId,
           nome:     data.nome,
           cnpj:     data.cnpj.replace(/[^\d]/g, ''),
           email:    data.email,
@@ -66,7 +69,7 @@ export class ClienteDrizzleRepository implements IClienteRepository {
     }
   }
 
-  async update(id: number, data: UpdateClienteData): Promise<Cliente> {
+  async update(id: number, ownerId: string, data: UpdateClienteData): Promise<Cliente> {
     try {
       const updateData: Record<string, any> = {};
       if (data.nome     !== undefined) updateData.nome     = data.nome;
@@ -78,7 +81,7 @@ export class ClienteDrizzleRepository implements IClienteRepository {
       const [row] = await this.db
         .update(clientes)
         .set(updateData)
-        .where(eq(clientes.id, id))
+        .where(and(eq(clientes.id, id), eq(clientes.ownerId, ownerId)))
         .returning();
       return row;
     } catch (err: any) {
@@ -87,16 +90,18 @@ export class ClienteDrizzleRepository implements IClienteRepository {
     }
   }
 
-  async delete(id: number): Promise<void> {
-    await this.db.delete(clientes).where(eq(clientes.id, id));
+  async delete(id: number, ownerId: string): Promise<void> {
+    await this.db
+      .delete(clientes)
+      .where(and(eq(clientes.id, id), eq(clientes.ownerId, ownerId)));
   }
 
-  async countOrcamentos(clienteId: number): Promise<number> {
-    const { orcamentos } = await import('@orcamento/db');
+  async countOrcamentos(clienteId: number, ownerId: string): Promise<number> {
     const [row] = await this.db
       .select({ value: count() })
       .from(orcamentos)
-      .where(eq(orcamentos.clienteId, clienteId));
+      .innerJoin(clientes, eq(orcamentos.clienteId, clientes.id))
+      .where(and(eq(orcamentos.clienteId, clienteId), eq(clientes.ownerId, ownerId)));
     return Number(row?.value ?? 0);
   }
 

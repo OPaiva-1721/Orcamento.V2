@@ -12,14 +12,14 @@ export class CreateDestinatarioUseCase {
     @Inject(CLIENTE_REPOSITORY) private readonly clienteRepo: IClienteRepository,
   ) {}
 
-  async execute(dto: CreateDestinatarioDto): Promise<Destinatario> {
-    const cliente = await this.clienteRepo.findById(dto.clienteId);
+  async execute(dto: CreateDestinatarioDto, ownerId: string): Promise<Destinatario> {
+    const cliente = await this.clienteRepo.findById(dto.clienteId, ownerId);
     if (!cliente) throw new ClienteNotFoundException(dto.clienteId);
 
     return this.destRepo.create({
       nome:      dto.nome,
       email:     dto.email.toLowerCase().trim(),
       clienteId: dto.clienteId,
-    });
+    }, ownerId);
   }
 }

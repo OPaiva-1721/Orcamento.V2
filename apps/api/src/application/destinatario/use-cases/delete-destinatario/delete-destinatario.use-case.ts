@@ -9,14 +9,13 @@ export class DeleteDestinatarioUseCase {
     @Inject(DESTINATARIO_REPOSITORY) private readonly destRepo: IDestinatarioRepository,
   ) {}
 
-  async execute(id: number): Promise<void> {
-    const existing = await this.destRepo.findById(id);
+  async execute(id: number, ownerId: string): Promise<void> {
+    const existing = await this.destRepo.findById(id, ownerId);
     if (!existing) throw new DestinatarioNotFoundException(id);
 
-    // RN-11: não deletar destinatário com orçamentos associados
-    const orcamentoCount = await this.destRepo.countOrcamentos(id);
+    const orcamentoCount = await this.destRepo.countOrcamentos(id, ownerId);
     if (orcamentoCount > 0) throw new DestinatarioHasOrcamentosException(id);
 
-    await this.destRepo.delete(id);
+    await this.destRepo.delete(id, ownerId);
   }
 }

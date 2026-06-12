@@ -22,9 +22,9 @@ export class CreateOrcamentoUseCase {
     private readonly eventEmitter: EventEmitter2,
   ) {}
 
-  async execute(dto: CreateOrcamentoDto): Promise<Orcamento> {
-    // 1. Validar cliente
-    const cliente = await this.clienteRepo.findById(dto.clienteId);
+  async execute(dto: CreateOrcamentoDto, ownerId: string): Promise<Orcamento> {
+    // 1. Validar cliente pertence ao owner
+    const cliente = await this.clienteRepo.findById(dto.clienteId, ownerId);
     if (!cliente) throw new ClienteNotFoundException(dto.clienteId);
 
     // 2. Calcular transição de status (RN-01)
@@ -39,7 +39,7 @@ export class CreateOrcamentoUseCase {
 
     // 3. Validar destinatários (RN-05: devem pertencer ao cliente)
     if (dto.destinatarioIds.length > 0) {
-      const found = await this.destRepo.findByIds(dto.destinatarioIds);
+      const found = await this.destRepo.findByIds(dto.destinatarioIds, ownerId);
       for (const dest of found) {
         if (dest.clienteId !== dto.clienteId) {
           throw new DestinatarioNotBelongsToClienteException(dest.id, dto.clienteId);
@@ -63,12 +63,12 @@ export class CreateOrcamentoUseCase {
       clienteId:      dto.clienteId,
       destinatarioIds: dto.destinatarioIds,
       initialHistoryEntries: transition.historyEntries,
-    });
+    }, ownerId);
 
     // 5. Disparar evento de domínio (RN-02: auto-email via handler)
     this.eventEmitter.emit(
       'orcamento.created',
-      new OrcamentoCreatedEvent(orcamento.id, dto.destinatarioIds),
+      new OrcamentoCreatedEvent(orcamento.id, dto.destinatarioIds, ownerId),
     );
 
     return orcamento;

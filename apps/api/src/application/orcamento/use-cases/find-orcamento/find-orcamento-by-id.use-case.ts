@@ -9,8 +9,8 @@ export class FindOrcamentoByIdUseCase {
     @Inject(ORCAMENTO_REPOSITORY) private readonly orcamentoRepo: IOrcamentoRepository,
   ) {}
 
-  async execute(id: number): Promise<Orcamento> {
-    const orcamento = await this.orcamentoRepo.findById(id);
+  async execute(id: number, ownerId: string): Promise<Orcamento> {
+    const orcamento = await this.orcamentoRepo.findById(id, ownerId);
     if (!orcamento) throw new OrcamentoNotFoundException(id);
     return orcamento;
   }

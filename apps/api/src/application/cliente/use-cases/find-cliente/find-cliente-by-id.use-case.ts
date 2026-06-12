@@ -9,8 +9,8 @@ export class FindClienteByIdUseCase {
     @Inject(CLIENTE_REPOSITORY) private readonly clienteRepo: IClienteRepository,
   ) {}
 
-  async execute(id: number): Promise<Cliente> {
-    const cliente = await this.clienteRepo.findById(id);
+  async execute(id: number, ownerId: string): Promise<Cliente> {
+    const cliente = await this.clienteRepo.findById(id, ownerId);
     if (!cliente) throw new ClienteNotFoundException(id);
     return cliente;
   }

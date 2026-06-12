@@ -11,8 +11,8 @@ export class UpdateClienteUseCase {
     @Inject(CLIENTE_REPOSITORY) private readonly clienteRepo: IClienteRepository,
   ) {}
 
-  async execute(id: number, dto: UpdateClienteDto): Promise<Cliente> {
-    const existing = await this.clienteRepo.findById(id);
+  async execute(id: number, dto: UpdateClienteDto, ownerId: string): Promise<Cliente> {
+    const existing = await this.clienteRepo.findById(id, ownerId);
     if (!existing) throw new ClienteNotFoundException(id);
 
     const updateData: any = {};
@@ -21,6 +21,6 @@ export class UpdateClienteUseCase {
     if (dto.email    !== undefined) updateData.email    = dto.email.toLowerCase().trim();
     if (dto.cnpj     !== undefined) updateData.cnpj     = CnpjVO.create(dto.cnpj).value;
 
-    return this.clienteRepo.update(id, updateData);
+    return this.clienteRepo.update(id, ownerId, updateData);
   }
 }

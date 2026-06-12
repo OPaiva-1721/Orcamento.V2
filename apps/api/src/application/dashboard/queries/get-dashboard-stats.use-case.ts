@@ -12,12 +12,12 @@ export class GetDashboardStatsUseCase {
     @Inject(DESTINATARIO_REPOSITORY) private readonly destRepo: IDestinatarioRepository,
   ) {}
 
-  async execute(): Promise<DashboardStats> {
+  async execute(ownerId: string): Promise<DashboardStats> {
     const [clientes, destinatarios, orcamentos, aprovados] = await Promise.all([
-      this.clienteRepo.findAll({ limit: 1 }),
-      this.destRepo.findAll({ limit: 1 }),
-      this.orcamentoRepo.findAll({ limit: 5 }),
-      this.orcamentoRepo.findAll({ status: 'Aprovado', limit: 1000 }),
+      this.clienteRepo.findAll({ ownerId, limit: 1 }),
+      this.destRepo.findAll({ ownerId, limit: 1 }),
+      this.orcamentoRepo.findAll({ ownerId, limit: 5 }),
+      this.orcamentoRepo.findAll({ ownerId, status: 'Aprovado', limit: 100 }),
     ]);
 
     const valorTotalAprovado = aprovados.data.reduce((sum, o) => sum + o.preco, 0);

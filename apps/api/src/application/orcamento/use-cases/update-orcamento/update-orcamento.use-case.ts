@@ -17,8 +17,8 @@ export class UpdateOrcamentoUseCase {
     private readonly statusTransition: StatusTransitionDomainService,
   ) {}
 
-  async execute(id: number, dto: UpdateOrcamentoDto): Promise<Orcamento> {
-    const existing = await this.orcamentoRepo.findById(id);
+  async execute(id: number, dto: UpdateOrcamentoDto, ownerId: string): Promise<Orcamento> {
+    const existing = await this.orcamentoRepo.findById(id, ownerId);
     if (!existing) throw new OrcamentoNotFoundException(id);
 
     const clienteId = dto.clienteId ?? existing.clienteId;
@@ -42,7 +42,7 @@ export class UpdateOrcamentoUseCase {
 
     // Validar destinatários se alterados (RN-05)
     if (dto.destinatarioIds !== undefined && dto.destinatarioIds.length > 0) {
-      const found = await this.destRepo.findByIds(dto.destinatarioIds);
+      const found = await this.destRepo.findByIds(dto.destinatarioIds, ownerId);
       for (const dest of found) {
         if (dest.clienteId !== clienteId) {
           throw new DestinatarioNotBelongsToClienteException(dest.id, clienteId);
@@ -50,7 +50,7 @@ export class UpdateOrcamentoUseCase {
       }
     }
 
-    return this.orcamentoRepo.update(id, {
+    return this.orcamentoRepo.update(id, ownerId, {
       descricao:       dto.descricao,
       preco:           dto.preco,
       status:          finalStatus,

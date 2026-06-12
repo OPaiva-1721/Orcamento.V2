@@ -10,11 +10,11 @@ export class CreateClienteUseCase {
     @Inject(CLIENTE_REPOSITORY) private readonly clienteRepo: IClienteRepository,
   ) {}
 
-  async execute(dto: CreateClienteDto): Promise<Cliente> {
-    // Valida e normaliza CNPJ via Value Object (lança InvalidCnpjException se inválido)
+  async execute(dto: CreateClienteDto, ownerId: string): Promise<Cliente> {
     const cnpjVO = CnpjVO.create(dto.cnpj);
 
     return this.clienteRepo.create({
+      ownerId,
       nome:     dto.nome,
       cnpj:     cnpjVO.value,
       email:    dto.email.toLowerCase().trim(),
