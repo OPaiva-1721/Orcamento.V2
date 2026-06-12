@@ -1,5 +1,6 @@
 import {
   Orcamento,
+  OrcamentoStatus,
   CreateOrcamentoData,
   UpdateOrcamentoData,
   OrcamentoFilters,
@@ -38,6 +39,14 @@ export interface IOrcamentoRepository {
     ownerId: string,
   ): Promise<void>;
   countByClienteId(clienteId: number, ownerId: string): Promise<number>;
+  /**
+   * Agregação por status calculada no banco (COUNT + SUM), sem teto artificial
+   * de registros. Usada pelo dashboard.
+   */
+  getStatusAggregate(
+    ownerId: string,
+    status: OrcamentoStatus,
+  ): Promise<{ total: number; valorTotal: number }>;
 }
 
 export const ORCAMENTO_REPOSITORY = 'ORCAMENTO_REPOSITORY';

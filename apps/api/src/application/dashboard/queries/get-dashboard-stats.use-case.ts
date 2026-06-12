@@ -29,20 +29,16 @@ export class GetDashboardStatsUseCase {
       this.clienteRepo.findAll({ ownerId, limit: 1 }),
       this.destRepo.findAll({ ownerId, limit: 1 }),
       this.orcamentoRepo.findAll({ ownerId, limit: 5 }),
-      this.orcamentoRepo.findAll({ ownerId, status: 'Aprovado', limit: 100 }),
+      // COUNT + SUM agregados no banco — sem teto artificial de 100 registros
+      this.orcamentoRepo.getStatusAggregate(ownerId, 'Aprovado'),
     ]);
-
-    const valorTotalAprovado = aprovados.data.reduce(
-      (sum, o) => sum + o.preco,
-      0,
-    );
 
     return {
       totalClientes: clientes.total,
       totalOrcamentos: orcamentos.total,
       totalOrcamentosAprovados: aprovados.total,
       totalDestinatarios: destinatarios.total,
-      valorTotalAprovado,
+      valorTotalAprovado: aprovados.valorTotal,
       recentOrcamentos: orcamentos.data,
     };
   }

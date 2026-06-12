@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { eq, count, and, desc } from 'drizzle-orm';
+import { eq, count, and, desc, sum } from 'drizzle-orm';
 import {
   clientes,
   orcamentos,
@@ -288,6 +288,21 @@ export class OrcamentoDrizzleRepository implements IOrcamentoRepository {
         and(eq(orcamentos.clienteId, clienteId), eq(clientes.ownerId, ownerId)),
       );
     return Number(row?.value ?? 0);
+  }
+
+  async getStatusAggregate(
+    ownerId: string,
+    status: string,
+  ): Promise<{ total: number; valorTotal: number }> {
+    const [row] = await this.db
+      .select({ total: count(), valorTotal: sum(orcamentos.preco) })
+      .from(orcamentos)
+      .innerJoin(clientes, eq(orcamentos.clienteId, clientes.id))
+      .where(and(eq(clientes.ownerId, ownerId), eq(orcamentos.status, status)));
+    return {
+      total: Number(row?.total ?? 0),
+      valorTotal: Number(row?.valorTotal ?? 0),
+    };
   }
 
   private mapRow(row: any): Orcamento {
