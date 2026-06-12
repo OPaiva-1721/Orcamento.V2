@@ -1,6 +1,7 @@
 import { NavLink } from 'react-router-dom';
 import { LayoutDashboard, Users, FileText, UserCheck, LogOut } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
+import { COMPANY_NAME } from '../../lib/config';
 
 const NAV_ITEMS = [
   { to: '/dashboard',    label: 'Dashboard',    icon: LayoutDashboard },
@@ -15,7 +16,7 @@ export function Sidebar() {
   return (
     <aside className="hidden md:flex flex-col w-56 bg-white border-r border-gray-100 h-full shrink-0">
       <div className="px-4 py-5 border-b border-gray-100">
-        <h2 className="text-sm font-semibold text-gray-900">Águia Soluções</h2>
+        <h2 className="text-sm font-semibold text-gray-900">{COMPANY_NAME}</h2>
         <p className="text-xs text-gray-500 mt-0.5">Orçamentos</p>
       </div>
 

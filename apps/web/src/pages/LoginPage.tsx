@@ -2,6 +2,7 @@ import { useState } from 'react';
 import type { FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { COMPANY_NAME } from '../lib/config';
 
 export function LoginPage() {
   const { signIn } = useAuth();
@@ -30,7 +31,7 @@ export function LoginPage() {
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
       <div className="w-full max-w-md bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-gray-900">Águia Soluções</h1>
+          <h1 className="text-2xl font-bold text-gray-900">{COMPANY_NAME}</h1>
           <p className="text-gray-500 text-sm mt-1">Sistema de Orçamentos</p>
         </div>
 
