@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import { Plus, Pencil, Trash2, Mail, FileText } from 'lucide-react';
 import { useOrcamentos, useDeleteOrcamento, useSendEmail } from '../../hooks/useOrcamentos';
 import { formatCurrency, formatDate } from '../../lib/utils';
-import { api } from '../../lib/api-client';
 
 const STATUS_COLORS: Record<string, string> = {
   Pendente:      'bg-yellow-100 text-yellow-800',

@@ -1,8 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../lib/api-client';
-import type { Orcamento, CreateOrcamentoData, UpdateOrcamentoData, PaginatedResponse, OrcamentoFilters } from '@orcamento/shared-types';
+import type { Orcamento, CreateOrcamentoData, UpdateOrcamentoData, PaginatedResponse, OrcamentoFilterParams } from '@orcamento/shared-types';
 
-export function useOrcamentos(filters?: OrcamentoFilters) {
+export function useOrcamentos(filters?: OrcamentoFilterParams) {
   const query = new URLSearchParams();
   if (filters?.clienteId) query.set('clienteId', String(filters.clienteId));
   if (filters?.status)    query.set('status',    filters.status);

@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../lib/api-client';
-import type { Cliente, CreateClienteData, UpdateClienteData, PaginatedResponse } from '@orcamento/shared-types';
+import type { Cliente, CreateClienteInput, UpdateClienteData, PaginatedResponse } from '@orcamento/shared-types';
 
 export function useClientes(params?: { q?: string; page?: number; limit?: number }) {
   const query = new URLSearchParams();
@@ -24,7 +24,7 @@ export function useCliente(id: number) {
 
 export function useCreateCliente() {
   const qc = useQueryClient();
-  return useMutation<Cliente, Error, CreateClienteData>({
+  return useMutation<Cliente, Error, CreateClienteInput>({
     mutationFn: (data) => api.post('/clientes', data),
     onSuccess:  () => qc.invalidateQueries({ queryKey: ['clientes'] }),
   });

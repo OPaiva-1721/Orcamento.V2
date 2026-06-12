@@ -1,4 +1,5 @@
-import { useState, FormEvent, useEffect } from 'react';
+import { useState, useEffect } from 'react';
+import type { FormEvent } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useOrcamento, useUpdateOrcamento } from '../../hooks/useOrcamentos';
 import { useClientes } from '../../hooks/useClientes';

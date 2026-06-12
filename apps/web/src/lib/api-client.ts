@@ -3,13 +3,14 @@ import { auth } from './firebase';
 const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:3001';
 
 export class ApiError extends Error {
-  constructor(
-    public readonly status: number,
-    message: string,
-    public readonly code?: string,
-  ) {
+  readonly status: number;
+  readonly code?: string;
+
+  constructor(status: number, message: string, code?: string) {
     super(message);
     this.name = 'ApiError';
+    this.status = status;
+    this.code = code;
   }
 }
 

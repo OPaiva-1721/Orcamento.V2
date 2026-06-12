@@ -87,15 +87,21 @@ export interface EmailEnviado {
 
 // --- DTOs de criação/atualização ---
 
-export interface CreateClienteData {
-  ownerId: string;
+// Entrada vinda do cliente (front) — sem ownerId, que é derivado do token.
+export interface CreateClienteInput {
   nome: string;
   cnpj: string;
   email: string;
   telefone: string;
 }
 
-export interface UpdateClienteData extends Partial<CreateClienteData> {}
+// Dado persistido pelo repositório — ownerId injetado pela API a partir do
+// CurrentUser, nunca vindo do body.
+export interface CreateClienteData extends CreateClienteInput {
+  ownerId: string;
+}
+
+export interface UpdateClienteData extends Partial<CreateClienteInput> {}
 
 export interface CreateDestinatarioData {
   nome: string;
@@ -151,12 +157,17 @@ export interface DestinatarioFilters {
   limit?: number;
 }
 
-export interface OrcamentoFilters {
-  ownerId: string;
+// Filtros que o front pode enviar — sem ownerId.
+export interface OrcamentoFilterParams {
   clienteId?: number;
   status?: OrcamentoStatus;
   page?: number;
   limit?: number;
+}
+
+// Filtros usados no repositório — ownerId injetado pela API.
+export interface OrcamentoFilters extends OrcamentoFilterParams {
+  ownerId: string;
 }
 
 // --- PDF / Email ---

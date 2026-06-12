@@ -1,6 +1,6 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { useAuth } from './contexts/AuthContext';
-import { ReactNode } from 'react';
+import type { ReactNode } from 'react';
 
 import { Layout } from './components/layout/Layout';
 import { LoginPage } from './pages/LoginPage';
