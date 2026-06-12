@@ -12,7 +12,20 @@ prisma/dev.db-journal
 
 # Next.js
 .next/
+.next/cache/
 out/
+
+# Build/test artifacts
+dist/
+build/
+coverage/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
 
 # Vercel
 .vercel

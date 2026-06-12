@@ -4,15 +4,15 @@ services:
     container_name: orcamento-db
     restart: unless-stopped
     environment:
-      POSTGRES_DB: orcamento
-      POSTGRES_USER: orcamento
-      POSTGRES_PASSWORD: secret
+      POSTGRES_DB:       ${POSTGRES_DB:?POSTGRES_DB env var is required}
+      POSTGRES_USER:     ${POSTGRES_USER:?POSTGRES_USER env var is required}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD env var is required}
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U orcamento -d orcamento"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -28,12 +28,17 @@ services:
     env_file:
       - ./apps/api/.env
     environment:
-      DATABASE_URL: postgresql://orcamento:secret@db:5432/orcamento
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
       PORT: 3001
       NODE_ENV: development
     depends_on:
       db:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:3001"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
 
   web:
     build:
@@ -45,6 +50,11 @@ services:
       - "5173:80"
     env_file:
       - ./apps/web/.env
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
 
 volumes:
   postgres_data:
