@@ -6,6 +6,8 @@ const STATUS_MAP: Record<string, number> = {
   ClienteNotFoundException: 404,
   DestinatarioNotFoundException: 404,
   OrcamentoNotFoundException: 404,
+  ResourceNotFoundException: 404,
+  ForbiddenResourceException: 403,
   ClienteHasOrcamentosException: 409,
   DestinatarioHasOrcamentosException: 409,
   CnpjAlreadyExistsException: 409,

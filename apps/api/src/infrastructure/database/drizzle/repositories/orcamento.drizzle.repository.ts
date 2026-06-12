@@ -17,6 +17,8 @@ import {
   UpdateOrcamentoWithHistory,
 } from '../../../../domain/orcamento/repositories/orcamento.repository.interface';
 import { DRIZZLE_CONNECTION } from '../drizzle.constants';
+import { ForbiddenResourceException } from '../../../../domain/shared/exceptions/forbidden-resource.exception';
+import { ResourceNotFoundException } from '../../../../domain/shared/exceptions/resource-not-found.exception';
 
 @Injectable()
 export class OrcamentoDrizzleRepository implements IOrcamentoRepository {
@@ -102,7 +104,7 @@ export class OrcamentoDrizzleRepository implements IOrcamentoRepository {
           eq(clientes.ownerId, ownerId),
         ),
       });
-      if (!cliente) throw new Error('CLIENTE_NOT_OWNED');
+      if (!cliente) throw new ForbiddenResourceException('Cliente não pertence ao usuário');
 
       const [row] = await tx
         .insert(orcamentos)
@@ -127,7 +129,7 @@ export class OrcamentoDrizzleRepository implements IOrcamentoRepository {
           (d: any) => d.clienteId === data.clienteId,
         );
         if (validDest.length !== data.destinatarioIds.length) {
-          throw new Error('DESTINATARIO_NOT_OWNED');
+          throw new ForbiddenResourceException('Destinatário não pertence ao usuário');
         }
         await tx.insert(orcamentosDestinatarios).values(
           data.destinatarioIds.map((did) => ({
@@ -162,7 +164,7 @@ export class OrcamentoDrizzleRepository implements IOrcamentoRepository {
         with: { cliente: true },
       });
       if (!existing || existing.cliente?.ownerId !== ownerId)
-        throw new Error('ORCAMENTO_NOT_OWNED');
+        throw new ResourceNotFoundException('Orçamento não encontrado');
 
       const updateData: Record<string, any> = { updatedAt: new Date() };
       if (data.descricao !== undefined) updateData.descricao = data.descricao;
@@ -184,7 +186,7 @@ export class OrcamentoDrizzleRepository implements IOrcamentoRepository {
             eq(clientes.ownerId, ownerId),
           ),
         });
-        if (!novoCliente) throw new Error('CLIENTE_NOT_OWNED');
+        if (!novoCliente) throw new ForbiddenResourceException('Cliente não pertence ao usuário');
         updateData.clienteId = data.clienteId;
       }
 
@@ -204,7 +206,7 @@ export class OrcamentoDrizzleRepository implements IOrcamentoRepository {
             (d: any) => d.clienteId === targetClienteId,
           );
           if (validDest.length !== data.destinatarioIds.length) {
-            throw new Error('DESTINATARIO_NOT_OWNED');
+            throw new ForbiddenResourceException('Destinatário não pertence ao usuário');
           }
           await tx.insert(orcamentosDestinatarios).values(
             data.destinatarioIds.map((did) => ({
@@ -236,7 +238,7 @@ export class OrcamentoDrizzleRepository implements IOrcamentoRepository {
         with: { cliente: true },
       });
       if (!existing || existing.cliente?.ownerId !== ownerId)
-        throw new Error('ORCAMENTO_NOT_OWNED');
+        throw new ResourceNotFoundException('Orçamento não encontrado');
       await tx.delete(orcamentos).where(eq(orcamentos.id, id));
     });
   }
@@ -252,7 +254,7 @@ export class OrcamentoDrizzleRepository implements IOrcamentoRepository {
         with: { cliente: true },
       });
       if (!orcamento || orcamento.cliente?.ownerId !== ownerId)
-        throw new Error('ORCAMENTO_NOT_OWNED');
+        throw new ResourceNotFoundException('Orçamento não encontrado');
 
       if (destinatarioIds.length) {
         const destRows = await tx.query.destinatarios.findMany({
@@ -262,7 +264,7 @@ export class OrcamentoDrizzleRepository implements IOrcamentoRepository {
           (d: any) => d.clienteId === orcamento.clienteId,
         );
         if (validDest.length !== destinatarioIds.length)
-          throw new Error('DESTINATARIO_NOT_OWNED');
+          throw new ForbiddenResourceException('Destinatário não pertence ao usuário');
       }
 
       await tx
