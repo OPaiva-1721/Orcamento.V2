@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { EventEmitterModule } from '@nestjs/event-emitter';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 
 // Infrastructure modules (global)
@@ -27,6 +28,9 @@ import { DomainExceptionFilter } from './presentation/http/filters/domain-except
     ConfigModule.forRoot({ isGlobal: true }),
     EventEmitterModule.forRoot(),
 
+    // Rate limiting global: 60 requisições por minuto por IP
+    ThrottlerModule.forRoot([{ ttl: 60_000, limit: 60 }]),
+
     // Infraestrutura global
     DrizzleModule,
     FirebaseModule,
@@ -42,6 +46,8 @@ import { DomainExceptionFilter } from './presentation/http/filters/domain-except
     DashboardModule,
   ],
   providers: [
+    // Guard global de rate limiting (roda antes da autenticação)
+    { provide: APP_GUARD, useClass: ThrottlerGuard },
     // Guard global: todos os endpoints requerem Firebase Auth por padrão
     { provide: APP_GUARD, useClass: FirebaseAuthGuard },
     // Envolve todas as respostas em { success: true, data: ... }

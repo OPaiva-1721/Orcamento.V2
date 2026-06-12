@@ -1,9 +1,13 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
+import helmet from 'helmet';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
+  // Cabeçalhos de segurança HTTP
+  app.use(helmet());
 
   // Validação global de DTOs via class-validator
   app.useGlobalPipes(
