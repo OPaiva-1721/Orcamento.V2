@@ -10,16 +10,10 @@ import {
   IsString,
   Min,
 } from 'class-validator';
-import { OrcamentoStatus } from '@orcamento/shared-types';
-
-const VALID_STATUSES: OrcamentoStatus[] = [
-  'Pendente',
-  'Aprovado',
-  'Rejeitado',
-  'Cancelado',
-  'Em Andamento',
-  'Concluído',
-];
+import {
+  OrcamentoStatus,
+  ORCAMENTO_STATUS_VALUES,
+} from '@orcamento/shared-types';
 
 export class CreateOrcamentoDto {
   @IsNotEmpty({ message: 'Descrição é obrigatória' })
@@ -31,7 +25,7 @@ export class CreateOrcamentoDto {
   preco: number;
 
   @IsOptional()
-  @IsIn(VALID_STATUSES, { message: 'Status inválido' })
+  @IsIn(ORCAMENTO_STATUS_VALUES, { message: 'Status inválido' })
   status?: OrcamentoStatus;
 
   @IsBoolean({ message: 'formaPagamento deve ser booleano' })

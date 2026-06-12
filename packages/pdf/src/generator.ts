@@ -10,6 +10,37 @@ export interface OrcamentoParaPDF {
   cliente: { nome: string };
 }
 
+/** Identidade da empresa emissora — configurável por tenant/ambiente. */
+export interface CompanyInfo {
+  nome: string;
+  razaoSocial: string;
+  cnpj: string;
+  ie?: string;
+  telefone: string;
+  contato?: string;
+  endereco: string;
+  bairro: string;
+  cidade: string;
+  rodapeRazao: string;
+}
+
+/**
+ * Valores padrão (preservam a identidade atual). Em produção devem ser
+ * sobrescritos via configuração — ver PdfLibService no apps/api.
+ */
+export const DEFAULT_COMPANY: CompanyInfo = {
+  nome: 'ÁGUIA SOLUÇÕES',
+  razaoSocial: 'ÁGUIA SOLUÇÕES INDUSTRIAIS LTDA.',
+  cnpj: '53.956.317/0001-62',
+  ie: '91054587-60',
+  telefone: '(44) 9 9828-0425',
+  contato: 'Robson Neves',
+  endereco: 'RUA LUIZ DONIN, 3366',
+  bairro: 'JARDIM PROGRESSO',
+  cidade: 'PALOTINA-PR',
+  rodapeRazao: 'Águia Soluções em Montagens e Manutenções Industriais Ltda.',
+};
+
 /** Converte top% CSS em coordenada Y do PDF (sistema invertido) */
 function cssTopToPdfY(percentTop: number, pageHeight: number): number {
   return pageHeight - pageHeight * (percentTop / 100);
@@ -23,6 +54,7 @@ function cssTopToPdfY(percentTop: number, pageHeight: number): number {
 export async function gerarPDFOrcamento(
   orcamento: OrcamentoParaPDF,
   logoPath?: string,
+  empresa: CompanyInfo = DEFAULT_COMPANY,
 ): Promise<Buffer> {
   const pdfDoc = await PDFDocument.create();
   const page = pdfDoc.addPage([595, 842]); // A4
@@ -55,22 +87,22 @@ export async function gerarPDFOrcamento(
   }
 
   // Informações da empresa
-  page.drawText('ÁGUIA SOLUÇÕES INDUSTRIAIS LTDA.', {
+  page.drawText(empresa.razaoSocial, {
     x: width * 0.0183, y: cssTopToPdfY(16.11, height), size: 28, font: boldFont, color: black,
   });
-  page.drawText('CNPJ: 53.956.317/0001-62', {
+  page.drawText(`CNPJ: ${empresa.cnpj}`, {
     x: width * 0.0183, y: cssTopToPdfY(26.84, height), size: 18, font: boldFont, color: black,
   });
-  page.drawText('TELEFONE: (44) 9 9828-0425', {
+  page.drawText(`TELEFONE: ${empresa.telefone}`, {
     x: width * 0.0183, y: cssTopToPdfY(32.32, height), size: 18, font: boldFont, color: black,
   });
-  page.drawText('ENDEREÇO: RUA LUIZ DONIN, 3366', {
+  page.drawText(`ENDEREÇO: ${empresa.endereco}`, {
     x: width * 0.0168, y: cssTopToPdfY(37.53, height), size: 18, font: boldFont, color: black,
   });
-  page.drawText('BAIRRO: JARDIM PROGRESSO', {
+  page.drawText(`BAIRRO: ${empresa.bairro}`, {
     x: width * 0.0168, y: cssTopToPdfY(43.13, height), size: 18, font: boldFont, color: black,
   });
-  page.drawText('CIDADE: PALOTINA-PR', {
+  page.drawText(`CIDADE: ${empresa.cidade}`, {
     x: width * 0.0183, y: cssTopToPdfY(48.6, height), size: 18, font: boldFont, color: black,
   });
 
@@ -113,6 +145,7 @@ export async function gerarPDFOrcamento(
 export async function gerarPDFEditavel(
   orcamento: OrcamentoParaPDF,
   logoPath?: string,
+  empresa: CompanyInfo = DEFAULT_COMPANY,
 ): Promise<Buffer> {
   const pdfDoc = await PDFDocument.create();
   const page = pdfDoc.addPage([595, 842]);
@@ -138,22 +171,22 @@ export async function gerarPDFEditavel(
   } catch { /* sem logo */ }
 
   // Cabeçalho empresa (não editável)
-  page.drawText('ÁGUIA SOLUÇÕES INDUSTRIAIS LTDA.', {
+  page.drawText(empresa.razaoSocial, {
     x: width * 0.0183, y: cssTopToPdfY(16.11, height), size: 28, font: boldFont, color: black,
   });
-  page.drawText('CNPJ: 53.956.317/0001-62', {
+  page.drawText(`CNPJ: ${empresa.cnpj}`, {
     x: width * 0.0183, y: cssTopToPdfY(26.84, height), size: 18, font: boldFont, color: black,
   });
-  page.drawText('TELEFONE: (44) 9 9828-0425', {
+  page.drawText(`TELEFONE: ${empresa.telefone}`, {
     x: width * 0.0183, y: cssTopToPdfY(32.32, height), size: 18, font: boldFont, color: black,
   });
-  page.drawText('ENDEREÇO: RUA LUIZ DONIN, 3366', {
+  page.drawText(`ENDEREÇO: ${empresa.endereco}`, {
     x: width * 0.0168, y: cssTopToPdfY(37.53, height), size: 18, font: boldFont, color: black,
   });
-  page.drawText('BAIRRO: JARDIM PROGRESSO', {
+  page.drawText(`BAIRRO: ${empresa.bairro}`, {
     x: width * 0.0168, y: cssTopToPdfY(43.13, height), size: 18, font: boldFont, color: black,
   });
-  page.drawText('CIDADE: PALOTINA-PR', {
+  page.drawText(`CIDADE: ${empresa.cidade}`, {
     x: width * 0.0183, y: cssTopToPdfY(48.6, height), size: 18, font: boldFont, color: black,
   });
 
@@ -208,6 +241,7 @@ export async function gerarPDFEditavel(
 export function gerarHTMLEmail(
   orcamento: OrcamentoParaPDF & { dataInicio: Date; dataTermino?: Date | null },
   destinatario: { nome: string },
+  empresa: CompanyInfo = DEFAULT_COMPANY,
 ): string {
   const valorFormatado = orcamento.preco.toLocaleString('pt-BR', {
     style: 'currency',
@@ -219,7 +253,7 @@ export function gerarHTMLEmail(
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Orçamento #${orcamento.id} - Águia Soluções</title>
+  <title>Orçamento #${orcamento.id} - ${empresa.nome}</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: 'Segoe UI', Roboto, Arial, sans-serif; line-height: 1.6; color: #1f2937; background-color: #f3f4f6; padding: 20px; }
@@ -245,7 +279,7 @@ export function gerarHTMLEmail(
 <body>
   <div class="email-container">
     <div class="header">
-      <div class="company-name">ÁGUIA SOLUÇÕES</div>
+      <div class="company-name">${empresa.nome}</div>
       <div class="orcamento-number">Orçamento #${orcamento.id}</div>
     </div>
     <div class="content">
@@ -259,14 +293,14 @@ export function gerarHTMLEmail(
       </div>
       <div class="signature">
         <p class="signature-text">Atenciosamente,</p>
-        <p class="signature-name">Equipe Águia Soluções</p>
+        <p class="signature-name">Equipe ${empresa.nome}</p>
       </div>
     </div>
     <div class="footer">
-      <div class="footer-info"><strong>Águia Soluções em Montagens e Manutenções Industriais Ltda.</strong></div>
-      <div class="footer-info">CNPJ: 53.956.317/0001-62 • IE: 91054587-60</div>
-      <div class="footer-info">📞 (44) 9 9828-0425 – Robson Neves</div>
-      <div class="footer-info">📍 Rua Luiz Donin, 3366 - Jardim Progresso - Palotina-PR</div>
+      <div class="footer-info"><strong>${empresa.rodapeRazao}</strong></div>
+      <div class="footer-info">CNPJ: ${empresa.cnpj}${empresa.ie ? ` • IE: ${empresa.ie}` : ''}</div>
+      <div class="footer-info">📞 ${empresa.telefone}${empresa.contato ? ` – ${empresa.contato}` : ''}</div>
+      <div class="footer-info">📍 ${empresa.endereco} - ${empresa.bairro} - ${empresa.cidade}</div>
     </div>
   </div>
 </body>

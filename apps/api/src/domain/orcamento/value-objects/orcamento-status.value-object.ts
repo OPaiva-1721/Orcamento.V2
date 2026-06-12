@@ -1,14 +1,11 @@
-import { OrcamentoStatus } from '@orcamento/shared-types';
+import {
+  OrcamentoStatus,
+  ORCAMENTO_STATUS,
+  ORCAMENTO_STATUS_VALUES,
+} from '@orcamento/shared-types';
 import { InvalidStatusException } from '../exceptions/invalid-status.exception';
 
-const VALID_STATUSES: OrcamentoStatus[] = [
-  'Pendente',
-  'Aprovado',
-  'Rejeitado',
-  'Cancelado',
-  'Em Andamento',
-  'Concluído',
-];
+const VALID_STATUSES: OrcamentoStatus[] = ORCAMENTO_STATUS_VALUES;
 
 export class OrcamentoStatusVO {
   readonly value: OrcamentoStatus;
@@ -25,15 +22,15 @@ export class OrcamentoStatusVO {
   }
 
   static pendente(): OrcamentoStatusVO {
-    return new OrcamentoStatusVO('Pendente');
+    return new OrcamentoStatusVO(ORCAMENTO_STATUS.PENDENTE);
   }
 
   isConcluido(): boolean {
-    return this.value === 'Concluído';
+    return this.value === ORCAMENTO_STATUS.CONCLUIDO;
   }
 
   isAprovado(): boolean {
-    return this.value === 'Aprovado';
+    return this.value === ORCAMENTO_STATUS.APROVADO;
   }
 
   equals(other: OrcamentoStatusVO): boolean {

@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { Orcamento } from '@orcamento/shared-types';
+import { Orcamento, ORCAMENTO_STATUS } from '@orcamento/shared-types';
 import {
   IOrcamentoRepository,
   ORCAMENTO_REPOSITORY,
@@ -40,7 +40,9 @@ export class CreateOrcamentoUseCase {
     if (!cliente) throw new ClienteNotFoundException(dto.clienteId);
 
     // 2. Calcular transição de status (RN-01)
-    const requestedStatus = OrcamentoStatusVO.create(dto.status ?? 'Pendente');
+    const requestedStatus = OrcamentoStatusVO.create(
+      dto.status ?? ORCAMENTO_STATUS.PENDENTE,
+    );
 
     // RN-03: dataTermino obrigatória se Concluído
     if (requestedStatus.isConcluido() && !dto.dataTermino) {

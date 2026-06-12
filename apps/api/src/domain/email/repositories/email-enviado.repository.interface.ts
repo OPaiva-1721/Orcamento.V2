@@ -1,9 +1,9 @@
-import { EmailEnviado } from '@orcamento/shared-types';
+import { EmailEnviado, EmailStatus } from '@orcamento/shared-types';
 
 export interface UpsertEmailEnviadoData {
   orcamentoId: number;
   destinatarioId: number;
-  status: 'Enviado' | 'Falhou' | 'Pendente';
+  status: EmailStatus;
 }
 
 export interface IEmailEnviadoRepository {

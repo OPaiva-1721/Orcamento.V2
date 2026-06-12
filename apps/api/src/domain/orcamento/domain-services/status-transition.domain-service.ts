@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { ORCAMENTO_STATUS } from '@orcamento/shared-types';
 import { OrcamentoStatusVO } from '../value-objects/orcamento-status.value-object';
 
 export interface NewStatusHistoryEntry {
@@ -33,11 +34,11 @@ export class StatusTransitionDomainService {
 
     if (requested.isConcluido()) {
       return {
-        persistedStatus: OrcamentoStatusVO.create('Aprovado'),
+        persistedStatus: OrcamentoStatusVO.create(ORCAMENTO_STATUS.APROVADO),
         historyEntries: [
-          { status: 'Concluído', observacao: baseObservacao },
+          { status: ORCAMENTO_STATUS.CONCLUIDO, observacao: baseObservacao },
           {
-            status: 'Aprovado',
+            status: ORCAMENTO_STATUS.APROVADO,
             observacao: 'Status automaticamente aprovado por estar concluído',
           },
         ],

@@ -9,16 +9,10 @@ import {
   IsString,
   Min,
 } from 'class-validator';
-import { OrcamentoStatus } from '@orcamento/shared-types';
-
-const VALID_STATUSES: OrcamentoStatus[] = [
-  'Pendente',
-  'Aprovado',
-  'Rejeitado',
-  'Cancelado',
-  'Em Andamento',
-  'Concluído',
-];
+import {
+  OrcamentoStatus,
+  ORCAMENTO_STATUS_VALUES,
+} from '@orcamento/shared-types';
 
 export class UpdateOrcamentoDto {
   @IsOptional()
@@ -31,7 +25,7 @@ export class UpdateOrcamentoDto {
   preco?: number;
 
   @IsOptional()
-  @IsIn(VALID_STATUSES)
+  @IsIn(ORCAMENTO_STATUS_VALUES)
   status?: OrcamentoStatus;
 
   @IsOptional()

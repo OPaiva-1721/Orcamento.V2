@@ -10,6 +10,7 @@ import {
 import {
   Orcamento,
   OrcamentoStatus,
+  ORCAMENTO_STATUS,
   OrcamentoFilters,
   PaginatedResponse,
 } from '@orcamento/shared-types';
@@ -113,7 +114,7 @@ export class OrcamentoDrizzleRepository implements IOrcamentoRepository {
         .values({
           descricao: data.descricao,
           preco: data.preco,
-          status: data.status ?? 'Pendente',
+          status: data.status ?? ORCAMENTO_STATUS.PENDENTE,
           formaPagamento: data.formaPagamento,
           dataInicio: new Date(data.dataInicio),
           dataTermino: data.dataTermino ? new Date(data.dataTermino) : null,

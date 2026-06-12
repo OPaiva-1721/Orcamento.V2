@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { DashboardStats } from '@orcamento/shared-types';
+import { DashboardStats, ORCAMENTO_STATUS } from '@orcamento/shared-types';
 import {
   IOrcamentoRepository,
   ORCAMENTO_REPOSITORY,
@@ -30,7 +30,7 @@ export class GetDashboardStatsUseCase {
       this.destRepo.findAll({ ownerId, limit: 1 }),
       this.orcamentoRepo.findAll({ ownerId, limit: 5 }),
       // COUNT + SUM agregados no banco — sem teto artificial de 100 registros
-      this.orcamentoRepo.getStatusAggregate(ownerId, 'Aprovado'),
+      this.orcamentoRepo.getStatusAggregate(ownerId, ORCAMENTO_STATUS.APROVADO),
     ]);
 
     return {

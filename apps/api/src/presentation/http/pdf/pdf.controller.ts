@@ -50,7 +50,7 @@ export class PdfController {
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader(
       'Content-Disposition',
-      `attachment; filename="orcamento_aguia_${orcamento.id}.pdf"`,
+      `attachment; filename="orcamento_${orcamento.id}.pdf"`,
     );
     res.send(pdfBuffer);
   }
@@ -79,7 +79,7 @@ export class PdfController {
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader(
       'Content-Disposition',
-      `attachment; filename="orcamento_aguia_editavel_${orcamento.id}.pdf"`,
+      `attachment; filename="orcamento_editavel_${orcamento.id}.pdf"`,
     );
     res.send(pdfBuffer);
   }

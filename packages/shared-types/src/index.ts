@@ -1,15 +1,30 @@
 // Tipos compartilhados do sistema de orçamentos
 // Usados tanto pelo apps/api (NestJS) quanto pelo apps/web (React/Vite)
 
-export type OrcamentoStatus =
-  | 'Pendente'
-  | 'Aprovado'
-  | 'Rejeitado'
-  | 'Cancelado'
-  | 'Em Andamento'
-  | 'Concluído';
+// Enum central de status de orçamento — fonte única da verdade
+export const ORCAMENTO_STATUS = {
+  PENDENTE: 'Pendente',
+  APROVADO: 'Aprovado',
+  REJEITADO: 'Rejeitado',
+  CANCELADO: 'Cancelado',
+  EM_ANDAMENTO: 'Em Andamento',
+  CONCLUIDO: 'Concluído',
+} as const;
 
-export type EmailStatus = 'Enviado' | 'Falhou' | 'Pendente';
+export type OrcamentoStatus =
+  (typeof ORCAMENTO_STATUS)[keyof typeof ORCAMENTO_STATUS];
+
+export const ORCAMENTO_STATUS_VALUES = Object.values(
+  ORCAMENTO_STATUS,
+) as OrcamentoStatus[];
+
+export const EMAIL_STATUS = {
+  ENVIADO: 'Enviado',
+  FALHOU: 'Falhou',
+  PENDENTE: 'Pendente',
+} as const;
+
+export type EmailStatus = (typeof EMAIL_STATUS)[keyof typeof EMAIL_STATUS];
 
 export interface Cliente {
   id: number;

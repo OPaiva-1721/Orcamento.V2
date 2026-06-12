@@ -79,11 +79,11 @@ export class SendOrcamentoEmailUseCase {
 
         await this.emailService.send({
           to: dest.email,
-          subject: `Orçamento solicitado - Águia Soluções`,
+          subject: `Orçamento solicitado - ${this.pdfService.companyName}`,
           html,
           attachments: [
             {
-              filename: `orcamento_aguia_${orcamento.id}.pdf`,
+              filename: `orcamento_${orcamento.id}.pdf`,
               content: pdfBuffer,
               contentType: 'application/pdf',
             },
