@@ -1,0 +1,78 @@
+events {
+  worker_connections 1024;
+}
+
+http {
+  include       /etc/nginx/mime.types;
+  default_type  application/octet-stream;
+  sendfile      on;
+  server_tokens off;
+
+  gzip          on;
+  gzip_types    text/plain text/css application/json application/javascript text/xml application/xml text/javascript;
+
+  # Timeouts
+  proxy_connect_timeout 10s;
+  proxy_send_timeout    30s;
+  proxy_read_timeout    30s;
+
+  # Redirect HTTP → HTTPS (keeps ACME challenge open)
+  server {
+    listen 80;
+    server_name ${DOMAIN};
+
+    location /.well-known/acme-challenge/ {
+      root /var/www/certbot;
+    }
+
+    location / {
+      return 301 https://$host$request_uri;
+    }
+  }
+
+  server {
+    listen 443 ssl http2;
+    server_name ${DOMAIN};
+
+    ssl_certificate           /etc/letsencrypt/live/${DOMAIN}/fullchain.pem;
+    ssl_certificate_key       /etc/letsencrypt/live/${DOMAIN}/privkey.pem;
+    ssl_protocols             TLSv1.2 TLSv1.3;
+    ssl_ciphers               ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384;
+    ssl_prefer_server_ciphers on;
+    ssl_session_cache         shared:SSL:10m;
+    ssl_session_timeout       10m;
+
+    # Security headers
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+    add_header X-Frame-Options           "DENY"                                always;
+    add_header X-Content-Type-Options    "nosniff"                             always;
+    add_header Referrer-Policy           "strict-origin-when-cross-origin"     always;
+    add_header Permissions-Policy        "geolocation=(), camera=(), microphone=(), payment=()" always;
+    add_header Content-Security-Policy   "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com; frame-ancestors 'none';" always;
+
+    # Limit payload (mitiga DoS por upload grande)
+    client_max_body_size 10M;
+
+    # API proxy — preserva prefixo /api/
+    location /api/ {
+      proxy_pass         http://api:3001/;
+      proxy_http_version 1.1;
+      proxy_set_header   Host              $host;
+      proxy_set_header   X-Real-IP         $remote_addr;
+      proxy_set_header   X-Forwarded-For   $proxy_add_x_forwarded_for;
+      proxy_set_header   X-Forwarded-Proto $scheme;
+      proxy_set_header   X-Forwarded-Host  $host;
+      proxy_set_header   X-Forwarded-Port  $server_port;
+    }
+
+    # SPA — frontend estático servido pelo container web
+    location / {
+      proxy_pass         http://web:80;
+      proxy_http_version 1.1;
+      proxy_set_header   Host              $host;
+      proxy_set_header   X-Real-IP         $remote_addr;
+      proxy_set_header   X-Forwarded-For   $proxy_add_x_forwarded_for;
+      proxy_set_header   X-Forwarded-Proto $scheme;
+    }
+  }
+}
