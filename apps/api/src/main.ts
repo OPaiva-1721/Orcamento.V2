@@ -1,10 +1,15 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
+import { NestExpressApplication } from '@nestjs/platform-express';
 import helmet from 'helmet';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+
+  // Atrás do Nginx: confia no primeiro proxy para que o throttler use o
+  // X-Forwarded-For (IP real do cliente) em vez do IP do proxy.
+  app.set('trust proxy', 1);
 
   // Cabeçalhos de segurança HTTP
   app.use(helmet());
