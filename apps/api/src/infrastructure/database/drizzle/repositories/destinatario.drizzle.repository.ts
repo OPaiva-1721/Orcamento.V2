@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { eq, count, inArray, and } from 'drizzle-orm';
+import { eq, count, inArray, and, desc } from 'drizzle-orm';
 import {
   clientes,
   destinatarios,
@@ -64,6 +64,7 @@ export class DestinatarioDrizzleRepository implements IDestinatarioRepository {
         .from(destinatarios)
         .innerJoin(clientes, eq(destinatarios.clienteId, clientes.id))
         .where(whereClause)
+        .orderBy(desc(destinatarios.createdAt))
         .limit(limit)
         .offset(offset),
       this.db
