@@ -1,7 +1,13 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { Orcamento } from '@orcamento/shared-types';
-import { IOrcamentoRepository, ORCAMENTO_REPOSITORY } from '../../../../domain/orcamento/repositories/orcamento.repository.interface';
-import { IDestinatarioRepository, DESTINATARIO_REPOSITORY } from '../../../../domain/destinatario/repositories/destinatario.repository.interface';
+import { Orcamento, OrcamentoStatus } from '@orcamento/shared-types';
+import {
+  IOrcamentoRepository,
+  ORCAMENTO_REPOSITORY,
+} from '../../../../domain/orcamento/repositories/orcamento.repository.interface';
+import {
+  IDestinatarioRepository,
+  DESTINATARIO_REPOSITORY,
+} from '../../../../domain/destinatario/repositories/destinatario.repository.interface';
 import { StatusTransitionDomainService } from '../../../../domain/orcamento/domain-services/status-transition.domain-service';
 import { OrcamentoStatusVO } from '../../../../domain/orcamento/value-objects/orcamento-status.value-object';
 import { OrcamentoNotFoundException } from '../../../../domain/orcamento/exceptions/orcamento-not-found.exception';
@@ -12,18 +18,26 @@ import { UpdateOrcamentoDto } from './update-orcamento.dto';
 @Injectable()
 export class UpdateOrcamentoUseCase {
   constructor(
-    @Inject(ORCAMENTO_REPOSITORY) private readonly orcamentoRepo: IOrcamentoRepository,
-    @Inject(DESTINATARIO_REPOSITORY) private readonly destRepo: IDestinatarioRepository,
+    @Inject(ORCAMENTO_REPOSITORY)
+    private readonly orcamentoRepo: IOrcamentoRepository,
+    @Inject(DESTINATARIO_REPOSITORY)
+    private readonly destRepo: IDestinatarioRepository,
     private readonly statusTransition: StatusTransitionDomainService,
   ) {}
 
-  async execute(id: number, dto: UpdateOrcamentoDto, ownerId: string): Promise<Orcamento> {
+  async execute(
+    id: number,
+    dto: UpdateOrcamentoDto,
+    ownerId: string,
+  ): Promise<Orcamento> {
     const existing = await this.orcamentoRepo.findById(id, ownerId);
     if (!existing) throw new OrcamentoNotFoundException(id);
 
     const clienteId = dto.clienteId ?? existing.clienteId;
-    let historyEntries: Array<{ status: string; observacao: string }> | undefined;
-    let finalStatus: string | undefined;
+    let historyEntries:
+      | Array<{ status: string; observacao: string }>
+      | undefined;
+    let finalStatus: OrcamentoStatus | undefined;
 
     // Calcular transição de status se mudou (RN-01)
     if (dto.status !== undefined) {
@@ -35,8 +49,11 @@ export class UpdateOrcamentoUseCase {
         throw new DataTerminoRequiredException();
       }
 
-      const transition = this.statusTransition.computeTransition(requestedStatus, 'atualizacao');
-      finalStatus    = transition.persistedStatus.value;
+      const transition = this.statusTransition.computeTransition(
+        requestedStatus,
+        'atualizacao',
+      );
+      finalStatus = transition.persistedStatus.value;
       historyEntries = transition.historyEntries;
     }
 
@@ -45,19 +62,22 @@ export class UpdateOrcamentoUseCase {
       const found = await this.destRepo.findByIds(dto.destinatarioIds, ownerId);
       for (const dest of found) {
         if (dest.clienteId !== clienteId) {
-          throw new DestinatarioNotBelongsToClienteException(dest.id, clienteId);
+          throw new DestinatarioNotBelongsToClienteException(
+            dest.id,
+            clienteId,
+          );
         }
       }
     }
 
     return this.orcamentoRepo.update(id, ownerId, {
-      descricao:       dto.descricao,
-      preco:           dto.preco,
-      status:          finalStatus,
-      formaPagamento:  dto.formaPagamento,
-      dataInicio:      dto.dataInicio ? new Date(dto.dataInicio) : undefined,
-      dataTermino:     dto.dataTermino ? new Date(dto.dataTermino) : undefined,
-      clienteId:       dto.clienteId,
+      descricao: dto.descricao,
+      preco: dto.preco,
+      status: finalStatus,
+      formaPagamento: dto.formaPagamento,
+      dataInicio: dto.dataInicio ? new Date(dto.dataInicio) : undefined,
+      dataTermino: dto.dataTermino ? new Date(dto.dataTermino) : undefined,
+      clienteId: dto.clienteId,
       destinatarioIds: dto.destinatarioIds,
       newHistoryEntries: historyEntries,
     });
