@@ -5,9 +5,11 @@ import {
   orcamentos,
   orcamentosDestinatarios,
   statusHistory,
+  type Database,
 } from '@orcamento/db';
 import {
   Orcamento,
+  OrcamentoStatus,
   OrcamentoFilters,
   PaginatedResponse,
 } from '@orcamento/shared-types';
@@ -22,7 +24,7 @@ import { ResourceNotFoundException } from '../../../../domain/shared/exceptions/
 
 @Injectable()
 export class OrcamentoDrizzleRepository implements IOrcamentoRepository {
-  constructor(@Inject(DRIZZLE_CONNECTION) private readonly db: any) {}
+  constructor(@Inject(DRIZZLE_CONNECTION) private readonly db: Database) {}
 
   async findById(id: number, ownerId: string): Promise<Orcamento | null> {
     const row = await this.db.query.orcamentos.findFirst({
@@ -294,7 +296,7 @@ export class OrcamentoDrizzleRepository implements IOrcamentoRepository {
 
   async getStatusAggregate(
     ownerId: string,
-    status: string,
+    status: OrcamentoStatus,
   ): Promise<{ total: number; valorTotal: number }> {
     const [row] = await this.db
       .select({ total: count(), valorTotal: sum(orcamentos.preco) })

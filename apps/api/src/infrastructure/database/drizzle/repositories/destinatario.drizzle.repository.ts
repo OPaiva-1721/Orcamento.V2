@@ -4,6 +4,7 @@ import {
   clientes,
   destinatarios,
   orcamentosDestinatarios,
+  type Database,
 } from '@orcamento/db';
 import {
   Destinatario,
@@ -20,7 +21,7 @@ import { ResourceNotFoundException } from '../../../../domain/shared/exceptions/
 
 @Injectable()
 export class DestinatarioDrizzleRepository implements IDestinatarioRepository {
-  constructor(@Inject(DRIZZLE_CONNECTION) private readonly db: any) {}
+  constructor(@Inject(DRIZZLE_CONNECTION) private readonly db: Database) {}
 
   async findById(id: number, ownerId: string): Promise<Destinatario | null> {
     const row = await this.db.query.destinatarios.findFirst({

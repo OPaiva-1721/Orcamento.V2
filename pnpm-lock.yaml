@@ -232,6 +232,9 @@ importers:
 
   packages/db:
     dependencies:
+      '@orcamento/shared-types':
+        specifier: workspace:*
+        version: link:../shared-types
       drizzle-orm:
         specifier: ^0.44.0
         version: 0.44.7(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(gel@2.2.0)(pg@8.20.0)

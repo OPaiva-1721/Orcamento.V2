@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { and, eq, ilike, count, sql } from 'drizzle-orm';
-import { clientes, orcamentos } from '@orcamento/db';
+import { clientes, orcamentos, type Database } from '@orcamento/db';
 import {
   Cliente,
   CreateClienteData,
@@ -15,7 +15,7 @@ import { EmailAlreadyExistsException } from '../../../../domain/cliente/exceptio
 
 @Injectable()
 export class ClienteDrizzleRepository implements IClienteRepository {
-  constructor(@Inject(DRIZZLE_CONNECTION) private readonly db: any) {}
+  constructor(@Inject(DRIZZLE_CONNECTION) private readonly db: Database) {}
 
   async findById(id: number, ownerId: string): Promise<Cliente | null> {
     const row = await this.db.query.clientes.findFirst({

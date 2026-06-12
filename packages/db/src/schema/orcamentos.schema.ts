@@ -1,4 +1,5 @@
 import { pgTable, serial, varchar, numeric, boolean, integer, timestamp, index } from 'drizzle-orm/pg-core';
+import type { OrcamentoStatus } from '@orcamento/shared-types';
 import { clientes } from './clientes.schema';
 
 export const orcamentos = pgTable(
@@ -7,7 +8,7 @@ export const orcamentos = pgTable(
     id:             serial('id').primaryKey(),
     descricao:      varchar('descricao', { length: 1000 }).notNull(),
     preco:          numeric('preco', { precision: 12, scale: 2, mode: 'number' }).notNull(),
-    status:         varchar('status', { length: 50 }).notNull().default('Pendente'),
+    status:         varchar('status', { length: 50 }).$type<OrcamentoStatus>().notNull().default('Pendente'),
     formaPagamento: boolean('forma_pagamento').notNull().default(false),
     dataInicio:     timestamp('data_inicio').notNull(),
     dataTermino:    timestamp('data_termino'),

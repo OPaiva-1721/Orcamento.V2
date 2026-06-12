@@ -14,6 +14,7 @@
     "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
+    "@orcamento/shared-types": "workspace:*",
     "drizzle-orm": "^0.44.0",
     "pg": "^8.13.0"
   },

@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { eq, and } from 'drizzle-orm';
-import { emailsEnviados } from '@orcamento/db';
+import { emailsEnviados, type Database } from '@orcamento/db';
 import { EmailEnviado } from '@orcamento/shared-types';
 import {
   IEmailEnviadoRepository,
@@ -10,7 +10,7 @@ import { DRIZZLE_CONNECTION } from '../drizzle.constants';
 
 @Injectable()
 export class EmailEnviadoDrizzleRepository implements IEmailEnviadoRepository {
-  constructor(@Inject(DRIZZLE_CONNECTION) private readonly db: any) {}
+  constructor(@Inject(DRIZZLE_CONNECTION) private readonly db: Database) {}
 
   async upsert(data: UpsertEmailEnviadoData): Promise<EmailEnviado> {
     const [row] = await this.db
