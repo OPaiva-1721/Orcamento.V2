@@ -1,8 +1,24 @@
-import { IsArray, IsBoolean, IsDateString, IsIn, IsInt, IsNotEmpty, IsNumber, IsOptional, IsString, Min } from 'class-validator';
+import {
+  IsArray,
+  IsBoolean,
+  IsDateString,
+  IsIn,
+  IsInt,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
+  Min,
+} from 'class-validator';
 import { OrcamentoStatus } from '@orcamento/shared-types';
 
 const VALID_STATUSES: OrcamentoStatus[] = [
-  'Pendente', 'Aprovado', 'Rejeitado', 'Cancelado', 'Em Andamento', 'Concluído',
+  'Pendente',
+  'Aprovado',
+  'Rejeitado',
+  'Cancelado',
+  'Em Andamento',
+  'Concluído',
 ];
 
 export class CreateOrcamentoDto {

@@ -12,9 +12,12 @@ import { DESTINATARIO_REPOSITORY } from '../../../domain/destinatario/repositori
   controllers: [DashboardController],
   providers: [
     GetDashboardStatsUseCase,
-    { provide: ORCAMENTO_REPOSITORY,    useClass: OrcamentoDrizzleRepository },
-    { provide: CLIENTE_REPOSITORY,      useClass: ClienteDrizzleRepository },
-    { provide: DESTINATARIO_REPOSITORY, useClass: DestinatarioDrizzleRepository },
+    { provide: ORCAMENTO_REPOSITORY, useClass: OrcamentoDrizzleRepository },
+    { provide: CLIENTE_REPOSITORY, useClass: ClienteDrizzleRepository },
+    {
+      provide: DESTINATARIO_REPOSITORY,
+      useClass: DestinatarioDrizzleRepository,
+    },
   ],
 })
 export class DashboardModule {}

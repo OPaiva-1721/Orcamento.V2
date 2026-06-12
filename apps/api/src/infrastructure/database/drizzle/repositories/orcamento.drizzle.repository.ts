@@ -1,7 +1,16 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { eq, count, and } from 'drizzle-orm';
-import { clientes, orcamentos, orcamentosDestinatarios, statusHistory } from '@orcamento/db';
-import { Orcamento, OrcamentoFilters, PaginatedResponse } from '@orcamento/shared-types';
+import {
+  clientes,
+  orcamentos,
+  orcamentosDestinatarios,
+  statusHistory,
+} from '@orcamento/db';
+import {
+  Orcamento,
+  OrcamentoFilters,
+  PaginatedResponse,
+} from '@orcamento/shared-types';
 import {
   IOrcamentoRepository,
   CreateOrcamentoWithHistory,
@@ -20,7 +29,7 @@ export class OrcamentoDrizzleRepository implements IOrcamentoRepository {
         cliente: true,
         destinatarios: { with: { destinatario: true } },
         emailsEnviados: { with: { destinatario: true } },
-        statusHistory:  true,
+        statusHistory: true,
       },
     });
     if (!row) return null;
@@ -28,14 +37,17 @@ export class OrcamentoDrizzleRepository implements IOrcamentoRepository {
     return this.mapRow(row);
   }
 
-  async findAll(filters: OrcamentoFilters): Promise<PaginatedResponse<Orcamento>> {
-    const page   = filters.page  ?? 1;
-    const limit  = Math.min(filters.limit ?? 10, 100);
+  async findAll(
+    filters: OrcamentoFilters,
+  ): Promise<PaginatedResponse<Orcamento>> {
+    const page = filters.page ?? 1;
+    const limit = Math.min(filters.limit ?? 10, 100);
     const offset = (page - 1) * limit;
 
     const conditions: any[] = [eq(clientes.ownerId, filters.ownerId)];
-    if (filters.clienteId) conditions.push(eq(orcamentos.clienteId, filters.clienteId));
-    if (filters.status)    conditions.push(eq(orcamentos.status, filters.status));
+    if (filters.clienteId)
+      conditions.push(eq(orcamentos.clienteId, filters.clienteId));
+    if (filters.status) conditions.push(eq(orcamentos.status, filters.status));
     const whereClause = and(...conditions);
 
     const [idRows, [totalRow]] = await Promise.all([
@@ -71,43 +83,57 @@ export class OrcamentoDrizzleRepository implements IOrcamentoRepository {
     const total = Number(totalRow?.value ?? 0);
     return {
       data: rows.map((r: any) => this.mapRow(r)),
-      total, page, limit,
+      total,
+      page,
+      limit,
       totalPages: Math.ceil(total / limit),
     };
   }
 
-  async create(data: CreateOrcamentoWithHistory, ownerId: string): Promise<Orcamento> {
+  async create(
+    data: CreateOrcamentoWithHistory,
+    ownerId: string,
+  ): Promise<Orcamento> {
     return this.db.transaction(async (tx: any) => {
       // Validar que cliente pertence ao owner antes inserir
       const cliente = await tx.query.clientes.findFirst({
-        where: and(eq(clientes.id, data.clienteId), eq(clientes.ownerId, ownerId)),
+        where: and(
+          eq(clientes.id, data.clienteId),
+          eq(clientes.ownerId, ownerId),
+        ),
       });
       if (!cliente) throw new Error('CLIENTE_NOT_OWNED');
 
       const [row] = await tx
         .insert(orcamentos)
         .values({
-          descricao:      data.descricao,
-          preco:          data.preco,
-          status:         data.status ?? 'Pendente',
+          descricao: data.descricao,
+          preco: data.preco,
+          status: data.status ?? 'Pendente',
           formaPagamento: data.formaPagamento,
-          dataInicio:     new Date(data.dataInicio),
-          dataTermino:    data.dataTermino ? new Date(data.dataTermino) : null,
-          clienteId:      data.clienteId,
+          dataInicio: new Date(data.dataInicio),
+          dataTermino: data.dataTermino ? new Date(data.dataTermino) : null,
+          clienteId: data.clienteId,
         })
         .returning();
 
       if (data.destinatarioIds?.length) {
         // Garantir que destinatários pertencem ao mesmo cliente do orçamento
         const destRows = await tx.query.destinatarios.findMany({
-          where: (d: any, { inArray }: any) => inArray(d.id, data.destinatarioIds!),
+          where: (d: any, { inArray }: any) =>
+            inArray(d.id, data.destinatarioIds),
         });
-        const validDest = destRows.filter((d: any) => d.clienteId === data.clienteId);
+        const validDest = destRows.filter(
+          (d: any) => d.clienteId === data.clienteId,
+        );
         if (validDest.length !== data.destinatarioIds.length) {
           throw new Error('DESTINATARIO_NOT_OWNED');
         }
         await tx.insert(orcamentosDestinatarios).values(
-          data.destinatarioIds.map((did) => ({ orcamentoId: row.id, destinatarioId: did })),
+          data.destinatarioIds.map((did) => ({
+            orcamentoId: row.id,
+            destinatarioId: did,
+          })),
         );
       }
 
@@ -115,8 +141,8 @@ export class OrcamentoDrizzleRepository implements IOrcamentoRepository {
         await tx.insert(statusHistory).values(
           data.initialHistoryEntries.map((e) => ({
             orcamentoId: row.id,
-            status:      e.status,
-            observacao:  e.observacao,
+            status: e.status,
+            observacao: e.observacao,
           })),
         );
       }
@@ -125,25 +151,38 @@ export class OrcamentoDrizzleRepository implements IOrcamentoRepository {
     });
   }
 
-  async update(id: number, ownerId: string, data: UpdateOrcamentoWithHistory): Promise<Orcamento> {
+  async update(
+    id: number,
+    ownerId: string,
+    data: UpdateOrcamentoWithHistory,
+  ): Promise<Orcamento> {
     return this.db.transaction(async (tx: any) => {
       const existing = await tx.query.orcamentos.findFirst({
         where: eq(orcamentos.id, id),
         with: { cliente: true },
       });
-      if (!existing || existing.cliente?.ownerId !== ownerId) throw new Error('ORCAMENTO_NOT_OWNED');
+      if (!existing || existing.cliente?.ownerId !== ownerId)
+        throw new Error('ORCAMENTO_NOT_OWNED');
 
       const updateData: Record<string, any> = { updatedAt: new Date() };
-      if (data.descricao      !== undefined) updateData.descricao      = data.descricao;
-      if (data.preco          !== undefined) updateData.preco          = data.preco;
-      if (data.status         !== undefined) updateData.status         = data.status;
-      if (data.formaPagamento !== undefined) updateData.formaPagamento = data.formaPagamento;
-      if (data.dataInicio     !== undefined) updateData.dataInicio     = new Date(data.dataInicio);
-      if (data.dataTermino    !== undefined) updateData.dataTermino    = data.dataTermino ? new Date(data.dataTermino) : null;
-      if (data.clienteId      !== undefined) {
+      if (data.descricao !== undefined) updateData.descricao = data.descricao;
+      if (data.preco !== undefined) updateData.preco = data.preco;
+      if (data.status !== undefined) updateData.status = data.status;
+      if (data.formaPagamento !== undefined)
+        updateData.formaPagamento = data.formaPagamento;
+      if (data.dataInicio !== undefined)
+        updateData.dataInicio = new Date(data.dataInicio);
+      if (data.dataTermino !== undefined)
+        updateData.dataTermino = data.dataTermino
+          ? new Date(data.dataTermino)
+          : null;
+      if (data.clienteId !== undefined) {
         // Não permite mover orçamento entre owners
         const novoCliente = await tx.query.clientes.findFirst({
-          where: and(eq(clientes.id, data.clienteId), eq(clientes.ownerId, ownerId)),
+          where: and(
+            eq(clientes.id, data.clienteId),
+            eq(clientes.ownerId, ownerId),
+          ),
         });
         if (!novoCliente) throw new Error('CLIENTE_NOT_OWNED');
         updateData.clienteId = data.clienteId;
@@ -152,18 +191,26 @@ export class OrcamentoDrizzleRepository implements IOrcamentoRepository {
       await tx.update(orcamentos).set(updateData).where(eq(orcamentos.id, id));
 
       if (data.destinatarioIds !== undefined) {
-        await tx.delete(orcamentosDestinatarios).where(eq(orcamentosDestinatarios.orcamentoId, id));
+        await tx
+          .delete(orcamentosDestinatarios)
+          .where(eq(orcamentosDestinatarios.orcamentoId, id));
         if (data.destinatarioIds.length) {
           const targetClienteId = updateData.clienteId ?? existing.clienteId;
           const destRows = await tx.query.destinatarios.findMany({
-            where: (d: any, { inArray }: any) => inArray(d.id, data.destinatarioIds!),
+            where: (d: any, { inArray }: any) =>
+              inArray(d.id, data.destinatarioIds!),
           });
-          const validDest = destRows.filter((d: any) => d.clienteId === targetClienteId);
+          const validDest = destRows.filter(
+            (d: any) => d.clienteId === targetClienteId,
+          );
           if (validDest.length !== data.destinatarioIds.length) {
             throw new Error('DESTINATARIO_NOT_OWNED');
           }
           await tx.insert(orcamentosDestinatarios).values(
-            data.destinatarioIds.map((did) => ({ orcamentoId: id, destinatarioId: did })),
+            data.destinatarioIds.map((did) => ({
+              orcamentoId: id,
+              destinatarioId: did,
+            })),
           );
         }
       }
@@ -172,8 +219,8 @@ export class OrcamentoDrizzleRepository implements IOrcamentoRepository {
         await tx.insert(statusHistory).values(
           data.newHistoryEntries.map((e) => ({
             orcamentoId: id,
-            status:      e.status,
-            observacao:  e.observacao,
+            status: e.status,
+            observacao: e.observacao,
           })),
         );
       }
@@ -188,31 +235,45 @@ export class OrcamentoDrizzleRepository implements IOrcamentoRepository {
         where: eq(orcamentos.id, id),
         with: { cliente: true },
       });
-      if (!existing || existing.cliente?.ownerId !== ownerId) throw new Error('ORCAMENTO_NOT_OWNED');
+      if (!existing || existing.cliente?.ownerId !== ownerId)
+        throw new Error('ORCAMENTO_NOT_OWNED');
       await tx.delete(orcamentos).where(eq(orcamentos.id, id));
     });
   }
 
-  async setDestinatarios(orcamentoId: number, destinatarioIds: number[], ownerId: string): Promise<void> {
+  async setDestinatarios(
+    orcamentoId: number,
+    destinatarioIds: number[],
+    ownerId: string,
+  ): Promise<void> {
     await this.db.transaction(async (tx: any) => {
       const orcamento = await tx.query.orcamentos.findFirst({
         where: eq(orcamentos.id, orcamentoId),
         with: { cliente: true },
       });
-      if (!orcamento || orcamento.cliente?.ownerId !== ownerId) throw new Error('ORCAMENTO_NOT_OWNED');
+      if (!orcamento || orcamento.cliente?.ownerId !== ownerId)
+        throw new Error('ORCAMENTO_NOT_OWNED');
 
       if (destinatarioIds.length) {
         const destRows = await tx.query.destinatarios.findMany({
           where: (d: any, { inArray }: any) => inArray(d.id, destinatarioIds),
         });
-        const validDest = destRows.filter((d: any) => d.clienteId === orcamento.clienteId);
-        if (validDest.length !== destinatarioIds.length) throw new Error('DESTINATARIO_NOT_OWNED');
+        const validDest = destRows.filter(
+          (d: any) => d.clienteId === orcamento.clienteId,
+        );
+        if (validDest.length !== destinatarioIds.length)
+          throw new Error('DESTINATARIO_NOT_OWNED');
       }
 
-      await tx.delete(orcamentosDestinatarios).where(eq(orcamentosDestinatarios.orcamentoId, orcamentoId));
+      await tx
+        .delete(orcamentosDestinatarios)
+        .where(eq(orcamentosDestinatarios.orcamentoId, orcamentoId));
       if (destinatarioIds.length) {
         await tx.insert(orcamentosDestinatarios).values(
-          destinatarioIds.map((did) => ({ orcamentoId, destinatarioId: did })),
+          destinatarioIds.map((did) => ({
+            orcamentoId,
+            destinatarioId: did,
+          })),
         );
       }
     });
@@ -223,7 +284,9 @@ export class OrcamentoDrizzleRepository implements IOrcamentoRepository {
       .select({ value: count() })
       .from(orcamentos)
       .innerJoin(clientes, eq(orcamentos.clienteId, clientes.id))
-      .where(and(eq(orcamentos.clienteId, clienteId), eq(clientes.ownerId, ownerId)));
+      .where(
+        and(eq(orcamentos.clienteId, clienteId), eq(clientes.ownerId, ownerId)),
+      );
     return Number(row?.value ?? 0);
   }
 

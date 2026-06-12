@@ -23,12 +23,13 @@ export class FirebaseAuthGuard implements CanActivate {
     if (isPublic) return true;
 
     const request = context.switchToHttp().getRequest();
-    const token   = this.extractToken(request);
-    if (!token) throw new UnauthorizedException('Token de autenticação não fornecido');
+    const token = this.extractToken(request);
+    if (!token)
+      throw new UnauthorizedException('Token de autenticação não fornecido');
 
     try {
       const decoded = await this.firebaseAuth.verifyToken(token);
-      request.user  = decoded;
+      request.user = decoded;
       return true;
     } catch {
       throw new UnauthorizedException('Token inválido ou expirado');

@@ -2,14 +2,19 @@ import { Body, Controller, HttpCode, Post, Res } from '@nestjs/common';
 import { IsInt, IsNotEmpty, Min } from 'class-validator';
 import { Response } from 'express';
 import { PdfLibService } from '../../../infrastructure/pdf/pdf-lib/pdf-lib.service';
-import { IOrcamentoRepository, ORCAMENTO_REPOSITORY } from '../../../domain/orcamento/repositories/orcamento.repository.interface';
+import {
+  IOrcamentoRepository,
+  ORCAMENTO_REPOSITORY,
+} from '../../../domain/orcamento/repositories/orcamento.repository.interface';
 import { OrcamentoNotFoundException } from '../../../domain/orcamento/exceptions/orcamento-not-found.exception';
 import { Inject } from '@nestjs/common';
 import { CurrentUser } from '../decorators/current-user.decorator';
 import { DecodedFirebaseToken } from '../../../infrastructure/auth/firebase/firebase-auth.adapter';
 
 class GerarPdfDto {
-  @IsNotEmpty() @IsInt() @Min(1)
+  @IsNotEmpty()
+  @IsInt()
+  @Min(1)
   orcamentoId: number;
 }
 
@@ -17,13 +22,21 @@ class GerarPdfDto {
 export class PdfController {
   constructor(
     private readonly pdfService: PdfLibService,
-    @Inject(ORCAMENTO_REPOSITORY) private readonly orcamentoRepo: IOrcamentoRepository,
+    @Inject(ORCAMENTO_REPOSITORY)
+    private readonly orcamentoRepo: IOrcamentoRepository,
   ) {}
 
   @Post('gerar-pdf')
   @HttpCode(200)
-  async gerarPDF(@Body() body: GerarPdfDto, @CurrentUser() user: DecodedFirebaseToken, @Res() res: Response) {
-    const orcamento = await this.orcamentoRepo.findById(body.orcamentoId, user.uid);
+  async gerarPDF(
+    @Body() body: GerarPdfDto,
+    @CurrentUser() user: DecodedFirebaseToken,
+    @Res() res: Response,
+  ) {
+    const orcamento = await this.orcamentoRepo.findById(
+      body.orcamentoId,
+      user.uid,
+    );
     if (!orcamento) throw new OrcamentoNotFoundException(body.orcamentoId);
 
     const pdfBuffer = await this.pdfService.gerarPDF({
@@ -35,14 +48,24 @@ export class PdfController {
     });
 
     res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `attachment; filename="orcamento_aguia_${orcamento.id}.pdf"`);
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename="orcamento_aguia_${orcamento.id}.pdf"`,
+    );
     res.send(pdfBuffer);
   }
 
   @Post('gerar-pdf-editavel')
   @HttpCode(200)
-  async gerarPDFEditavel(@Body() body: GerarPdfDto, @CurrentUser() user: DecodedFirebaseToken, @Res() res: Response) {
-    const orcamento = await this.orcamentoRepo.findById(body.orcamentoId, user.uid);
+  async gerarPDFEditavel(
+    @Body() body: GerarPdfDto,
+    @CurrentUser() user: DecodedFirebaseToken,
+    @Res() res: Response,
+  ) {
+    const orcamento = await this.orcamentoRepo.findById(
+      body.orcamentoId,
+      user.uid,
+    );
     if (!orcamento) throw new OrcamentoNotFoundException(body.orcamentoId);
 
     const pdfBuffer = await this.pdfService.gerarPDFEditavel({
@@ -54,7 +77,10 @@ export class PdfController {
     });
 
     res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `attachment; filename="orcamento_aguia_editavel_${orcamento.id}.pdf"`);
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename="orcamento_aguia_editavel_${orcamento.id}.pdf"`,
+    );
     res.send(pdfBuffer);
   }
 }

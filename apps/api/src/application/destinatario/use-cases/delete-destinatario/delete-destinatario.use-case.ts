@@ -1,12 +1,16 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { IDestinatarioRepository, DESTINATARIO_REPOSITORY } from '../../../../domain/destinatario/repositories/destinatario.repository.interface';
+import {
+  IDestinatarioRepository,
+  DESTINATARIO_REPOSITORY,
+} from '../../../../domain/destinatario/repositories/destinatario.repository.interface';
 import { DestinatarioNotFoundException } from '../../../../domain/destinatario/exceptions/destinatario-not-found.exception';
 import { DestinatarioHasOrcamentosException } from '../../../../domain/destinatario/exceptions/destinatario-has-orcamentos.exception';
 
 @Injectable()
 export class DeleteDestinatarioUseCase {
   constructor(
-    @Inject(DESTINATARIO_REPOSITORY) private readonly destRepo: IDestinatarioRepository,
+    @Inject(DESTINATARIO_REPOSITORY)
+    private readonly destRepo: IDestinatarioRepository,
   ) {}
 
   async execute(id: number, ownerId: string): Promise<void> {

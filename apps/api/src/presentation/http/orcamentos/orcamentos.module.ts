@@ -22,9 +22,12 @@ import { CLIENTE_REPOSITORY } from '../../../domain/cliente/repositories/cliente
     FindOrcamentoByIdUseCase,
     ListOrcamentosUseCase,
     StatusTransitionDomainService,
-    { provide: ORCAMENTO_REPOSITORY,    useClass: OrcamentoDrizzleRepository },
-    { provide: DESTINATARIO_REPOSITORY, useClass: DestinatarioDrizzleRepository },
-    { provide: CLIENTE_REPOSITORY,      useClass: ClienteDrizzleRepository },
+    { provide: ORCAMENTO_REPOSITORY, useClass: OrcamentoDrizzleRepository },
+    {
+      provide: DESTINATARIO_REPOSITORY,
+      useClass: DestinatarioDrizzleRepository,
+    },
+    { provide: CLIENTE_REPOSITORY, useClass: ClienteDrizzleRepository },
   ],
 })
 export class OrcamentosModule {}

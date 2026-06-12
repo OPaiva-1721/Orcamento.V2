@@ -11,6 +11,9 @@ export const DrizzleProvider = {
     const pool = new Pool({
       connectionString: config.getOrThrow<string>('DATABASE_URL'),
     });
-    return drizzle(pool, { schema, logger: process.env.NODE_ENV !== 'production' });
+    return drizzle(pool, {
+      schema,
+      logger: process.env.NODE_ENV !== 'production',
+    });
   },
 };

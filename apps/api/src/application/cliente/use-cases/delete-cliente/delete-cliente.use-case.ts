@@ -1,12 +1,16 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { IClienteRepository, CLIENTE_REPOSITORY } from '../../../../domain/cliente/repositories/cliente.repository.interface';
+import {
+  IClienteRepository,
+  CLIENTE_REPOSITORY,
+} from '../../../../domain/cliente/repositories/cliente.repository.interface';
 import { ClienteNotFoundException } from '../../../../domain/cliente/exceptions/cliente-not-found.exception';
 import { ClienteHasOrcamentosException } from '../../../../domain/cliente/exceptions/cliente-has-orcamentos.exception';
 
 @Injectable()
 export class DeleteClienteUseCase {
   constructor(
-    @Inject(CLIENTE_REPOSITORY) private readonly clienteRepo: IClienteRepository,
+    @Inject(CLIENTE_REPOSITORY)
+    private readonly clienteRepo: IClienteRepository,
   ) {}
 
   async execute(id: number, ownerId: string): Promise<void> {

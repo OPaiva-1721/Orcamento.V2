@@ -1,7 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as path from 'path';
-import { gerarPDFOrcamento, gerarPDFEditavel, gerarHTMLEmail, OrcamentoParaPDF } from '@orcamento/pdf';
+import {
+  gerarPDFOrcamento,
+  gerarPDFEditavel,
+  gerarHTMLEmail,
+  OrcamentoParaPDF,
+} from '@orcamento/pdf';
 
 @Injectable()
 export class PdfLibService {
@@ -20,7 +25,10 @@ export class PdfLibService {
   }
 
   gerarHTMLEmail(
-    orcamento: OrcamentoParaPDF & { dataInicio: Date; dataTermino?: Date | null },
+    orcamento: OrcamentoParaPDF & {
+      dataInicio: Date;
+      dataTermino?: Date | null;
+    },
     destinatario: { nome: string },
   ): string {
     return gerarHTMLEmail(orcamento, destinatario);

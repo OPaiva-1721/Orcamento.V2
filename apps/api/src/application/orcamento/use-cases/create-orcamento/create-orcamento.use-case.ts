@@ -1,9 +1,18 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Orcamento } from '@orcamento/shared-types';
-import { IOrcamentoRepository, ORCAMENTO_REPOSITORY } from '../../../../domain/orcamento/repositories/orcamento.repository.interface';
-import { IClienteRepository, CLIENTE_REPOSITORY } from '../../../../domain/cliente/repositories/cliente.repository.interface';
-import { IDestinatarioRepository, DESTINATARIO_REPOSITORY } from '../../../../domain/destinatario/repositories/destinatario.repository.interface';
+import {
+  IOrcamentoRepository,
+  ORCAMENTO_REPOSITORY,
+} from '../../../../domain/orcamento/repositories/orcamento.repository.interface';
+import {
+  IClienteRepository,
+  CLIENTE_REPOSITORY,
+} from '../../../../domain/cliente/repositories/cliente.repository.interface';
+import {
+  IDestinatarioRepository,
+  DESTINATARIO_REPOSITORY,
+} from '../../../../domain/destinatario/repositories/destinatario.repository.interface';
 import { StatusTransitionDomainService } from '../../../../domain/orcamento/domain-services/status-transition.domain-service';
 import { OrcamentoStatusVO } from '../../../../domain/orcamento/value-objects/orcamento-status.value-object';
 import { ClienteNotFoundException } from '../../../../domain/cliente/exceptions/cliente-not-found.exception';
@@ -15,9 +24,12 @@ import { CreateOrcamentoDto } from './create-orcamento.dto';
 @Injectable()
 export class CreateOrcamentoUseCase {
   constructor(
-    @Inject(ORCAMENTO_REPOSITORY) private readonly orcamentoRepo: IOrcamentoRepository,
-    @Inject(CLIENTE_REPOSITORY)   private readonly clienteRepo: IClienteRepository,
-    @Inject(DESTINATARIO_REPOSITORY) private readonly destRepo: IDestinatarioRepository,
+    @Inject(ORCAMENTO_REPOSITORY)
+    private readonly orcamentoRepo: IOrcamentoRepository,
+    @Inject(CLIENTE_REPOSITORY)
+    private readonly clienteRepo: IClienteRepository,
+    @Inject(DESTINATARIO_REPOSITORY)
+    private readonly destRepo: IDestinatarioRepository,
     private readonly statusTransition: StatusTransitionDomainService,
     private readonly eventEmitter: EventEmitter2,
   ) {}
@@ -35,35 +47,49 @@ export class CreateOrcamentoUseCase {
       throw new DataTerminoRequiredException();
     }
 
-    const transition = this.statusTransition.computeTransition(requestedStatus, 'criacao');
+    const transition = this.statusTransition.computeTransition(
+      requestedStatus,
+      'criacao',
+    );
 
     // 3. Validar destinatários (RN-05: devem pertencer ao cliente)
     if (dto.destinatarioIds.length > 0) {
       const found = await this.destRepo.findByIds(dto.destinatarioIds, ownerId);
       for (const dest of found) {
         if (dest.clienteId !== dto.clienteId) {
-          throw new DestinatarioNotBelongsToClienteException(dest.id, dto.clienteId);
+          throw new DestinatarioNotBelongsToClienteException(
+            dest.id,
+            dto.clienteId,
+          );
         }
       }
       if (found.length !== dto.destinatarioIds.length) {
         const foundIds = found.map((d) => d.id);
-        const missing = dto.destinatarioIds.find((id) => !foundIds.includes(id));
-        throw new DestinatarioNotBelongsToClienteException(missing!, dto.clienteId);
+        const missing = dto.destinatarioIds.find(
+          (id) => !foundIds.includes(id),
+        );
+        throw new DestinatarioNotBelongsToClienteException(
+          missing!,
+          dto.clienteId,
+        );
       }
     }
 
     // 4. Persistir
-    const orcamento = await this.orcamentoRepo.create({
-      descricao:      dto.descricao,
-      preco:          dto.preco,
-      status:         transition.persistedStatus.value,
-      formaPagamento: dto.formaPagamento,
-      dataInicio:     new Date(dto.dataInicio),
-      dataTermino:    dto.dataTermino ? new Date(dto.dataTermino) : undefined,
-      clienteId:      dto.clienteId,
-      destinatarioIds: dto.destinatarioIds,
-      initialHistoryEntries: transition.historyEntries,
-    }, ownerId);
+    const orcamento = await this.orcamentoRepo.create(
+      {
+        descricao: dto.descricao,
+        preco: dto.preco,
+        status: transition.persistedStatus.value,
+        formaPagamento: dto.formaPagamento,
+        dataInicio: new Date(dto.dataInicio),
+        dataTermino: dto.dataTermino ? new Date(dto.dataTermino) : undefined,
+        clienteId: dto.clienteId,
+        destinatarioIds: dto.destinatarioIds,
+        initialHistoryEntries: transition.historyEntries,
+      },
+      ownerId,
+    );
 
     // 5. Disparar evento de domínio (RN-02: auto-email via handler)
     this.eventEmitter.emit(

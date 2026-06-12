@@ -1,7 +1,17 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { eq, count, inArray, and } from 'drizzle-orm';
-import { clientes, destinatarios, orcamentosDestinatarios } from '@orcamento/db';
-import { Destinatario, CreateDestinatarioData, UpdateDestinatarioData, DestinatarioFilters, PaginatedResponse } from '@orcamento/shared-types';
+import {
+  clientes,
+  destinatarios,
+  orcamentosDestinatarios,
+} from '@orcamento/db';
+import {
+  Destinatario,
+  CreateDestinatarioData,
+  UpdateDestinatarioData,
+  DestinatarioFilters,
+  PaginatedResponse,
+} from '@orcamento/shared-types';
 import { IDestinatarioRepository } from '../../../../domain/destinatario/repositories/destinatario.repository.interface';
 import { DRIZZLE_CONNECTION } from '../drizzle.constants';
 import { EmailAlreadyInUseException } from '../../../../domain/destinatario/exceptions/email-already-in-use.exception';
@@ -20,7 +30,11 @@ export class DestinatarioDrizzleRepository implements IDestinatarioRepository {
     return row;
   }
 
-  async findByEmailAndCliente(email: string, clienteId: number, ownerId: string): Promise<Destinatario | null> {
+  async findByEmailAndCliente(
+    email: string,
+    clienteId: number,
+    ownerId: string,
+  ): Promise<Destinatario | null> {
     const cliente = await this.assertClienteOwned(clienteId, ownerId);
     if (!cliente) return null;
     const row = await this.db.query.destinatarios.findFirst({
@@ -32,13 +46,16 @@ export class DestinatarioDrizzleRepository implements IDestinatarioRepository {
     return row ?? null;
   }
 
-  async findAll(filters: DestinatarioFilters): Promise<PaginatedResponse<Destinatario>> {
-    const page  = filters.page  ?? 1;
+  async findAll(
+    filters: DestinatarioFilters,
+  ): Promise<PaginatedResponse<Destinatario>> {
+    const page = filters.page ?? 1;
     const limit = Math.min(filters.limit ?? 10, 100);
     const offset = (page - 1) * limit;
 
     const conditions: any[] = [eq(clientes.ownerId, filters.ownerId)];
-    if (filters.clienteId) conditions.push(eq(destinatarios.clienteId, filters.clienteId));
+    if (filters.clienteId)
+      conditions.push(eq(destinatarios.clienteId, filters.clienteId));
     const whereClause = and(...conditions);
 
     const [idRows, [totalRow]] = await Promise.all([
@@ -66,7 +83,13 @@ export class DestinatarioDrizzleRepository implements IDestinatarioRepository {
       : [];
 
     const total = Number(totalRow?.value ?? 0);
-    return { data: rows, total, page, limit, totalPages: Math.ceil(total / limit) };
+    return {
+      data: rows,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    };
   }
 
   async findByIds(ids: number[], ownerId: string): Promise<Destinatario[]> {
@@ -78,34 +101,49 @@ export class DestinatarioDrizzleRepository implements IDestinatarioRepository {
     return rows.filter((r: any) => r.cliente?.ownerId === ownerId);
   }
 
-  async create(data: CreateDestinatarioData, ownerId: string): Promise<Destinatario> {
+  async create(
+    data: CreateDestinatarioData,
+    ownerId: string,
+  ): Promise<Destinatario> {
     const cliente = await this.assertClienteOwned(data.clienteId, ownerId);
     if (!cliente) throw new Error('CLIENTE_NOT_OWNED');
     try {
       const [row] = await this.db
         .insert(destinatarios)
-        .values({ nome: data.nome, email: data.email, clienteId: data.clienteId })
+        .values({
+          nome: data.nome,
+          email: data.email,
+          clienteId: data.clienteId,
+        })
         .returning();
       return row;
     } catch (err: any) {
-      if (err.code === '23505') throw new EmailAlreadyInUseException(data.email);
+      if (err.code === '23505')
+        throw new EmailAlreadyInUseException(data.email);
       throw err;
     }
   }
 
-  async update(id: number, ownerId: string, data: UpdateDestinatarioData): Promise<Destinatario> {
+  async update(
+    id: number,
+    ownerId: string,
+    data: UpdateDestinatarioData,
+  ): Promise<Destinatario> {
     const existing = await this.findById(id, ownerId);
     if (!existing) throw new Error('DESTINATARIO_NOT_OWNED');
 
     if (data.clienteId !== undefined && data.clienteId !== existing.clienteId) {
-      const novoCliente = await this.assertClienteOwned(data.clienteId, ownerId);
+      const novoCliente = await this.assertClienteOwned(
+        data.clienteId,
+        ownerId,
+      );
       if (!novoCliente) throw new Error('CLIENTE_NOT_OWNED');
     }
 
     try {
       const updateData: Record<string, any> = { updatedAt: new Date() };
-      if (data.nome      !== undefined) updateData.nome      = data.nome;
-      if (data.email     !== undefined) updateData.email     = data.email;
+      if (data.nome !== undefined) updateData.nome = data.nome;
+      if (data.email !== undefined) updateData.email = data.email;
       if (data.clienteId !== undefined) updateData.clienteId = data.clienteId;
 
       const [row] = await this.db
@@ -115,7 +153,8 @@ export class DestinatarioDrizzleRepository implements IDestinatarioRepository {
         .returning();
       return row;
     } catch (err: any) {
-      if (err.code === '23505') throw new EmailAlreadyInUseException(data.email ?? '');
+      if (err.code === '23505')
+        throw new EmailAlreadyInUseException(data.email ?? '');
       throw err;
     }
   }
@@ -126,7 +165,10 @@ export class DestinatarioDrizzleRepository implements IDestinatarioRepository {
     await this.db.delete(destinatarios).where(eq(destinatarios.id, id));
   }
 
-  async countOrcamentos(destinatarioId: number, ownerId: string): Promise<number> {
+  async countOrcamentos(
+    destinatarioId: number,
+    ownerId: string,
+  ): Promise<number> {
     const existing = await this.findById(destinatarioId, ownerId);
     if (!existing) return 0;
     const [row] = await this.db

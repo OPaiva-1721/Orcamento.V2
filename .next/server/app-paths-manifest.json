@@ -1,7 +1,0 @@
-{
-  "/api/orcamentos/route": "app/api/orcamentos/route.js",
-  "/api/clientes/route": "app/api/clientes/route.js",
-  "/orcamentos/page": "app/orcamentos/page.js",
-  "/orcamentos/novo/page": "app/orcamentos/novo/page.js",
-  "/dashboard/page": "app/dashboard/page.js"
-}

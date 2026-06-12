@@ -12,8 +12,11 @@ import { EMAIL_ENVIADO_REPOSITORY } from '../../../domain/email/repositories/ema
   providers: [
     SendOrcamentoEmailUseCase,
     OrcamentoCreatedHandler,
-    { provide: ORCAMENTO_REPOSITORY,    useClass: OrcamentoDrizzleRepository },
-    { provide: EMAIL_ENVIADO_REPOSITORY, useClass: EmailEnviadoDrizzleRepository },
+    { provide: ORCAMENTO_REPOSITORY, useClass: OrcamentoDrizzleRepository },
+    {
+      provide: EMAIL_ENVIADO_REPOSITORY,
+      useClass: EmailEnviadoDrizzleRepository,
+    },
   ],
 })
 export class EmailModule {}

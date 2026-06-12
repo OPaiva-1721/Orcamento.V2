@@ -43,11 +43,11 @@ import { DomainExceptionFilter } from './presentation/http/filters/domain-except
   ],
   providers: [
     // Guard global: todos os endpoints requerem Firebase Auth por padrão
-    { provide: APP_GUARD,       useClass: FirebaseAuthGuard },
+    { provide: APP_GUARD, useClass: FirebaseAuthGuard },
     // Envolve todas as respostas em { success: true, data: ... }
     { provide: APP_INTERCEPTOR, useClass: ResponseTransformInterceptor },
     // Mapeia domain exceptions para HTTP status codes corretos
-    { provide: APP_FILTER,      useClass: DomainExceptionFilter },
+    { provide: APP_FILTER, useClass: DomainExceptionFilter },
   ],
 })
 export class AppModule {}

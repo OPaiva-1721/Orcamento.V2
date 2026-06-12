@@ -12,8 +12,11 @@ import { CLIENTE_REPOSITORY } from '../../../domain/cliente/repositories/cliente
   providers: [
     CreateDestinatarioUseCase,
     DeleteDestinatarioUseCase,
-    { provide: DESTINATARIO_REPOSITORY, useClass: DestinatarioDrizzleRepository },
-    { provide: CLIENTE_REPOSITORY,      useClass: ClienteDrizzleRepository },
+    {
+      provide: DESTINATARIO_REPOSITORY,
+      useClass: DestinatarioDrizzleRepository,
+    },
+    { provide: CLIENTE_REPOSITORY, useClass: ClienteDrizzleRepository },
   ],
   exports: [DESTINATARIO_REPOSITORY],
 })

@@ -7,11 +7,15 @@ import { DRIZZLE_CONNECTION } from '../drizzle.constants';
 export class StatusHistoryDrizzleRepository implements IStatusHistoryRepository {
   constructor(@Inject(DRIZZLE_CONNECTION) private readonly db: any) {}
 
-  async create(entry: { orcamentoId: number; status: string; observacao?: string }): Promise<void> {
+  async create(entry: {
+    orcamentoId: number;
+    status: string;
+    observacao?: string;
+  }): Promise<void> {
     await this.db.insert(statusHistory).values({
       orcamentoId: entry.orcamentoId,
-      status:      entry.status,
-      observacao:  entry.observacao,
+      status: entry.status,
+      observacao: entry.observacao,
     });
   }
 }

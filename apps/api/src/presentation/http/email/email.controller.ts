@@ -5,10 +5,13 @@ import { CurrentUser } from '../decorators/current-user.decorator';
 import { DecodedFirebaseToken } from '../../../infrastructure/auth/firebase/firebase-auth.adapter';
 
 class SendEmailDto {
-  @IsNotEmpty() @IsInt() @Min(1)
+  @IsNotEmpty()
+  @IsInt()
+  @Min(1)
   orcamentoId: number;
 
-  @IsArray() @IsInt({ each: true })
+  @IsArray()
+  @IsInt({ each: true })
   destinatarioIds: number[];
 }
 

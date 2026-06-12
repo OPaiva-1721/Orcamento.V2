@@ -8,8 +8,8 @@ export const NodemailerProvider = {
   inject: [ConfigService],
   useFactory: (config: ConfigService) => {
     return nodemailer.createTransport({
-      host:   config.get<string>('SMTP_HOST', 'smtp.gmail.com'),
-      port:   config.get<number>('SMTP_PORT', 587),
+      host: config.get<string>('SMTP_HOST', 'smtp.gmail.com'),
+      port: config.get<number>('SMTP_PORT', 587),
       secure: false,
       auth: {
         user: config.getOrThrow<string>('SMTP_USER'),
